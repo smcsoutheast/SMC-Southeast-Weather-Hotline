@@ -87,3 +87,9 @@ For live multi-device use, upgrade the storage layer to Firebase.
 Latest display change:
 
 The public venue cards now show only the venue name, status, and public note. Venue names display in uppercase. Card content is centered. Card color matches the venue status.
+
+
+Latest changes
+
+- Operations Timeline is now available only inside Admin Access.
+- Status History entries are color coded by status.

@@ -215,9 +215,18 @@ function calculateGlobalStatus(venues) {
   return "green";
 }
 
-function addHistory(title, note) {
-  data.history.unshift({ title, note, time: nowStamp(), admin: adminLabel() });
+function addHistory(title, note, status = "neutral") {
+  data.history.unshift({ title, note, status, time: nowStamp(), admin: adminLabel() });
   data.history = data.history.slice(0, 75);
+}
+
+function detectHistoryStatus(item) {
+  if (["green", "yellow", "red"].includes(item.status)) return item.status;
+  const content = `${item.title || ""} ${item.note || ""}`.toLowerCase();
+  if (content.includes("red") || content.includes("closed") || content.includes("suspended") || content.includes("lightning")) return "red";
+  if (content.includes("yellow") || content.includes("monitoring") || content.includes("delay") || content.includes("advisory")) return "yellow";
+  if (content.includes("green") || content.includes("all clear") || content.includes("normal operations") || content.includes("resume")) return "green";
+  return "neutral";
 }
 
 function addTimeline(title, note) {
@@ -334,13 +343,20 @@ function renderTimeline() {
 }
 
 function renderHistory() {
-  elements.historyList.innerHTML = data.history.length ? data.history.slice(0, 18).map(item => `
-    <div class="history-item">
-      <strong>${escapeHtml(item.title)}</strong>
-      <span>${escapeHtml(item.time || "Time not recorded")} | ${escapeHtml(item.admin || "System")}</span>
-      <p>${escapeHtml(item.note || "No details provided.")}</p>
-    </div>
-  `).join("") : `<p class="muted">No status updates have been posted yet.</p>`;
+  elements.historyList.innerHTML = data.history.length ? data.history.slice(0, 18).map(item => {
+    const status = detectHistoryStatus(item);
+    const statusLabel = status === "neutral" ? "Info" : titleCaseStatus(status);
+    return `
+      <div class="history-item status-history-item ${status}-history">
+        <div class="history-title-row">
+          <strong>${escapeHtml(item.title)}</strong>
+          <span class="history-status-pill ${status}">${escapeHtml(statusLabel)}</span>
+        </div>
+        <span>${escapeHtml(item.time || "Time not recorded")} | ${escapeHtml(item.admin || "System")}</span>
+        <p>${escapeHtml(item.note || "No details provided.")}</p>
+      </div>
+    `;
+  }).join("") : `<p class="muted">No status updates have been posted yet.</p>`;
 }
 
 function renderAdminVenues() {
@@ -470,7 +486,7 @@ function setAllStatuses(status) {
   data.venues = data.venues.map(venue => ({ ...venue, status }));
   data.lastUpdated = nowStamp();
   data.globalNote = status === "green" ? templates.allClear : status === "yellow" ? templates.monitoring : templates.lightningDelay;
-  addHistory(`All venues changed to ${titleCaseStatus(status)}`, data.globalNote);
+  addHistory(`All venues changed to ${titleCaseStatus(status)}`, data.globalNote, status);
   addTimeline(`All venues ${titleCaseStatus(status)}`, data.globalNote);
   saveData();
   if (status === "red" && oldStatus !== "red") playAlertTone();
@@ -528,7 +544,7 @@ elements.globalForm.addEventListener("submit", event => {
   event.preventDefault();
   data.globalNote = elements.globalNoteInput.value.trim() || "No current note.";
   data.lastUpdated = nowStamp();
-  addHistory("Global note updated", data.globalNote);
+  addHistory("Global note updated", data.globalNote, data.globalStatus);
   addTimeline("Global note updated", data.globalNote);
   saveData();
   render();
@@ -541,7 +557,7 @@ elements.timelineForm.addEventListener("submit", event => {
   if (!note) return alert("Enter a timeline note.");
   data.lastUpdated = nowStamp();
   addTimeline(title, note);
-  addHistory(title, note);
+  addHistory(title, note, detectHistoryStatus({ title, note }));
   saveData();
   elements.timelineForm.reset();
   render();
@@ -615,7 +631,7 @@ elements.adminVenueList.addEventListener("click", event => {
     venue.map = card.querySelector('[data-action="map"]').value.trim();
     data.lastUpdated = nowStamp();
     const note = `${oldName !== venue.name ? `Renamed from ${oldName}. ` : ""}Status: ${titleCaseStatus(venue.status)}. ${venue.note}`;
-    addHistory(`${venue.name} saved`, note);
+    addHistory(`${venue.name} saved`, note, venue.status);
     addTimeline(`${venue.name} ${titleCaseStatus(venue.status)}`, venue.note);
     if (venue.status === "red" && oldStatus !== "red") playAlertTone();
   }
@@ -664,7 +680,7 @@ document.getElementById("seedBtn").addEventListener("click", () => {
   if (!confirm("Reset all hotline data to defaults?")) return;
   data = clone(defaultData);
   data.lastUpdated = nowStamp();
-  addHistory("Database reset", "Default Southeast venues restored.");
+  addHistory("Database reset", "Default Southeast venues restored.", "green");
   saveData();
   render();
 });

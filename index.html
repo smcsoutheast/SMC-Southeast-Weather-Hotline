@@ -54,15 +54,6 @@
       </article>
     </section>
 
-    <section class="panel timeline-panel">
-      <div class="panel-header">
-        <div>
-          <h2>Operations Timeline</h2>
-          <p class="muted">Live public timeline</p>
-        </div>
-      </div>
-      <div id="timelineList" class="history-list"></div>
-    </section>
 
     <section class="panel history-panel">
       <div class="panel-header">
@@ -166,10 +157,20 @@
           <h3>Add Timeline Update</h3>
           <label for="timelineTitleInput">Title</label>
           <input id="timelineTitleInput" type="text" placeholder="Example: Lightning delay issued" />
-          <label for="timelineBodyInput">Public timeline note</label>
-          <textarea id="timelineBodyInput" rows="3" placeholder="Enter a short public operations update."></textarea>
+          <label for="timelineBodyInput">Private operations timeline note</label>
+          <textarea id="timelineBodyInput" rows="3" placeholder="Enter a short operations update for staff."></textarea>
           <button type="submit">Add Timeline Entry</button>
         </form>
+
+        <section class="admin-form timeline-panel">
+          <div class="panel-header compact-header">
+            <div>
+              <h3>Operations Timeline</h3>
+              <p class="field-help">Private command center timeline for staff.</p>
+            </div>
+          </div>
+          <div id="timelineList" class="history-list"></div>
+        </section>
 
         <form id="incidentForm" class="admin-form">
           <h3>Incident Log</h3>
