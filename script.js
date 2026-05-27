@@ -316,20 +316,11 @@ function renderPublicVenues() {
   const venues = getPublicVenues();
   elements.venueGrid.innerHTML = venues.length ? venues.map(venue => `
     <article class="venue-card ${venue.status}-card">
-      <h2>${escapeHtml(venue.name)}</h2>
-      <p class="venue-meta">${escapeHtml(venue.state)} | ${escapeHtml(venue.events.join(", "))}</p>
-      <div class="global-status ${venue.status}">${venue.status.toUpperCase()}</div>
+      <h2>${escapeHtml(venue.name.toUpperCase())}</h2>
+      <div class="venue-status-pill ${venue.status}">${venue.status.toUpperCase()}</div>
       <p class="venue-note">${escapeHtml(venue.note || "No current note.")}</p>
-      <ul class="detail-list">
-        ${venue.fieldCondition ? `<li><strong>Field condition:</strong> ${escapeHtml(venue.fieldCondition)}</li>` : ""}
-        ${venue.address ? `<li><strong>Venue details:</strong> ${escapeHtml(venue.address)}</li>` : ""}
-        ${venue.medical ? `<li><strong>Medical:</strong> ${escapeHtml(venue.medical)}</li>` : ""}
-        ${venue.shelter ? `<li><strong>Shelter:</strong> ${escapeHtml(venue.shelter)}</li>` : ""}
-        ${venue.parking ? `<li><strong>Parking:</strong> ${escapeHtml(venue.parking)}</li>` : ""}
-      </ul>
-      ${venue.map ? `<p><a class="map-link" href="${escapeAttr(venue.map)}" target="_blank" rel="noopener">Open Map</a></p>` : ""}
     </article>
-  `).join("") : `<article class="venue-card"><h2>No current public venues</h2><p class="muted">The command center is set to show current tournaments only, but no venue matches the selected tournaments.</p></article>`;
+  `).join("") : `<article class="venue-card empty-card"><h2>NO CURRENT PUBLIC VENUES</h2><p class="venue-note">The command center is set to show current tournaments only, but no venue matches the selected tournaments.</p></article>`;
 }
 
 function renderTimeline() {

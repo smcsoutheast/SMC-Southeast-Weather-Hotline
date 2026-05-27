@@ -84,32 +84,60 @@ h1 { font-size: clamp(44px, 10vw, 86px); margin: 0; letter-spacing: 0.06em; }
   margin-bottom: 22px;
 }
 .venue-card {
-  background: var(--white);
   border-radius: var(--radius);
-  padding: 22px;
+  padding: 28px 22px;
   box-shadow: var(--shadow);
-  border-top: 10px solid var(--green);
-  min-height: 240px;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
 }
 .venue-card.green-card {
-  background: linear-gradient(180deg, rgba(27, 143, 58, 0.16), #ffffff 58%);
-  border: 2px solid var(--green);
-  border-top: 10px solid var(--green);
+  background: var(--green);
+  color: var(--white);
 }
 .venue-card.yellow-card {
-  background: linear-gradient(180deg, rgba(212, 155, 0, 0.2), #ffffff 58%);
-  border: 2px solid var(--yellow);
-  border-top: 10px solid var(--yellow);
+  background: var(--yellow);
+  color: #1b1600;
 }
 .venue-card.red-card {
-  background: linear-gradient(180deg, rgba(180, 35, 24, 0.18), #ffffff 58%);
-  border: 2px solid var(--red);
-  border-top: 10px solid var(--red);
+  background: var(--red);
+  color: var(--white);
 }
-.venue-card h2 { margin: 0 0 8px; }
-.venue-meta { color: var(--muted); margin: 0 0 12px; }
-.venue-note { margin: 14px 0; line-height: 1.5; }
-.detail-list { margin: 12px 0 0; padding-left: 18px; color: var(--text); line-height: 1.5; }
+.venue-card.empty-card {
+  background: var(--white);
+  color: var(--text);
+}
+.venue-card h2 {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.venue-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  background: rgba(255,255,255,0.22);
+  border: 2px solid rgba(255,255,255,0.45);
+}
+.venue-card.yellow-card .venue-status-pill {
+  background: rgba(255,255,255,0.3);
+  border-color: rgba(27,22,0,0.25);
+}
+.venue-note {
+  margin: 0;
+  line-height: 1.5;
+  max-width: 420px;
+  font-size: 17px;
+  font-weight: 700;
+}
 .map-link, .file-link { color: var(--blue); font-weight: 800; text-decoration: none; }
 .map-link:hover, .file-link:hover { text-decoration: underline; }
 
