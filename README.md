@@ -1,60 +1,63 @@
 # SMC Southeast Weather Hotline
 
-A GitHub Pages weather hotline for Southeast SMC Soccer events.
-
-## Phase 1 updates included
-
-- Mobile-first sticky status banner
-- Region filter
-- Event filter
-- Larger venue cards
-- Fast action guidance for teams
-- Admin command center
-- Status templates
-- Emergency Red button
-- Full-screen command mode
-- Auto timestamps
-- Status history
-- Map links per venue
-- Admin history clear button
-- Red status alert tone
-
-## Admin password
-
-Default password:
+Admin password:
 
 southeast2026
 
-Change this in `script.js`:
+## What this version includes
 
-```js
-const ADMIN_PASSWORD = "southeast2026";
-```
+- Public weather update page
+- Admin-protected command center
+- Green, Yellow, and Red status levels
+- Venue card color changes based on status
+- Automatic global status based on venue status
+- Red overrides Yellow. Yellow overrides Green.
+- Editable venue name, region, tournaments, map link, status, and note
+- Venues can be assigned to multiple tournaments
+- Command center region and tournament filters
+- Public filters removed from public view
+- Public view setting to show only current tournaments
+- Status templates
+- Emergency Red action
+- Full-screen command mode
+- Status history
 
 ## GitHub Pages setup
 
-1. Create a GitHub repository named `SMC-Southeast-Weather-Hotline`.
-2. Upload these files to the repository root:
-   - `index.html`
-   - `style.css`
-   - `script.js`
-   - `README.md`
+1. Create a GitHub repository.
+2. Upload these files to the root of the repository:
+   - index.html
+   - style.css
+   - script.js
+   - README.md
 3. Go to Settings.
-4. Click Pages.
+4. Go to Pages.
 5. Select Deploy from branch.
-6. Choose `main` and `/root`.
+6. Select main branch and root folder.
 7. Save.
-8. Open the published GitHub Pages link.
+8. Open the GitHub Pages link.
 
-## Important
+## Command center workflow
 
-This starter version stores updates in each browser using localStorage. For multiple admins and live shared updates, upgrade to Firebase in Phase 2.
+1. Open the hotline page.
+2. Scroll to Admin Access.
+3. Enter the admin password.
+4. Use Command Center filters to find venues.
+5. Edit venue details.
+6. Select one or more tournaments per venue.
+7. Save the venue.
+8. Use Public Tournament View to choose which tournaments appear publicly.
+9. Turn on Show only current tournaments when needed.
+10. Save Public View.
 
+## Status logic
 
-## Latest requested changes
+- If any venue is Red, global status becomes Red.
+- If no venue is Red and at least one venue is Yellow, global status becomes Yellow.
+- If all venues are Green, global status becomes Green.
 
-- Updated main title to WEATHER UPDATES.
-- Updated brand line to Soccer Management Company.
-- Updated region title to Southeast Tournaments.
-- Added North Carolina as a region.
-- Added the full tournament list as a multi-select tournament filter.
+## Storage
+
+This version uses browser localStorage. Updates are saved on the device and browser used to make changes.
+
+For live multi-admin use, upgrade to Firebase.

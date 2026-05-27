@@ -32,26 +32,6 @@
       <button id="refreshBtn" class="secondary small-btn" type="button">Refresh</button>
     </section>
 
-    <section class="controls public-controls">
-      <div>
-        <label for="stateFilter">Filter by region</label>
-        <select id="stateFilter">
-          <option value="all">All Southeast Venues</option>
-          <option value="Florida">Florida</option>
-          <option value="South Carolina">South Carolina</option>
-          <option value="Alabama">Alabama</option>
-          <option value="Georgia">Georgia</option>
-          <option value="North Carolina">North Carolina</option>
-        </select>
-      </div>
-      <div>
-        <label for="eventFilter">Filter by tournament</label>
-        <select id="eventFilter" multiple size="6" aria-label="Filter by tournament">
-        </select>
-        <p class="field-help">Hold Ctrl on Windows or Command on Mac to select multiple tournaments.</p>
-      </div>
-    </section>
-
     <section id="venueGrid" class="venue-grid" aria-live="polite"></section>
 
     <section class="info-grid">
@@ -104,6 +84,37 @@
           </div>
         </div>
 
+        <section class="controls command-controls">
+          <div>
+            <label for="stateFilter">Command Center region filter</label>
+            <select id="stateFilter">
+              <option value="all">All Southeast Venues</option>
+              <option value="Florida">Florida</option>
+              <option value="South Carolina">South Carolina</option>
+              <option value="Alabama">Alabama</option>
+              <option value="Georgia">Georgia</option>
+              <option value="North Carolina">North Carolina</option>
+            </select>
+          </div>
+          <div>
+            <label for="eventFilter">Command Center tournament filter</label>
+            <select id="eventFilter" multiple size="6" aria-label="Filter by tournament"></select>
+            <p class="field-help">Hold Ctrl on Windows or Command on Mac to select multiple tournaments.</p>
+          </div>
+        </section>
+
+        <form id="publicViewForm" class="admin-form">
+          <h3>Public Tournament View</h3>
+          <label class="check-row">
+            <input id="showCurrentOnly" type="checkbox" />
+            Show only current tournaments in public view
+          </label>
+          <label for="currentTournamentSelect">Current tournaments</label>
+          <select id="currentTournamentSelect" multiple size="8" aria-label="Current tournaments"></select>
+          <p class="field-help">Venues assigned to at least one selected current tournament will display publicly.</p>
+          <button type="submit">Save Public View</button>
+        </form>
+
         <div class="admin-actions emergency-actions">
           <button id="allGreenBtn" type="button">All Green</button>
           <button id="allYellowBtn" type="button">All Yellow</button>
@@ -113,13 +124,7 @@
 
         <form id="globalForm" class="admin-form">
           <h3>Global Update</h3>
-          <label for="globalStatusSelect">Overall status</label>
-          <select id="globalStatusSelect">
-            <option value="green">Green</option>
-            <option value="yellow">Yellow</option>
-            <option value="red">Red</option>
-          </select>
-
+          <p class="field-help">Overall status updates automatically from venue status. Red overrides Yellow. Yellow overrides Green.</p>
           <label for="globalTemplateSelect">Status template</label>
           <select id="globalTemplateSelect">
             <option value="">Select a template</option>
@@ -133,7 +138,7 @@
 
           <label for="globalNoteInput">Public note</label>
           <textarea id="globalNoteInput" rows="4"></textarea>
-          <button type="submit">Save Global Update</button>
+          <button type="submit">Save Global Note</button>
         </form>
 
         <form id="venueForm" class="admin-form">
@@ -148,8 +153,8 @@
             <option value="Georgia">Georgia</option>
             <option value="North Carolina">North Carolina</option>
           </select>
-          <label for="newVenueEvent">Tournament</label>
-          <select id="newVenueEvent"></select>
+          <label for="newVenueEvents">Tournaments</label>
+          <select id="newVenueEvents" multiple size="8"></select>
           <label for="newVenueMap">GPS or map link</label>
           <input id="newVenueMap" type="url" placeholder="https://maps.google.com/..." />
           <button type="submit">Add Venue</button>

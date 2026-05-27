@@ -163,10 +163,8 @@ button.small-btn { padding: 10px 14px; white-space: nowrap; }
 .footer { text-align: center; color: var(--muted); padding: 28px; }
 
 body.command-mode .hero,
-body.command-mode .controls,
 body.command-mode .info-grid,
-body.command-mode .footer,
-body.command-mode .admin-panel {
+body.command-mode .footer {
   display: none;
 }
 
@@ -189,4 +187,51 @@ body.command-mode .venue-grid {
   .login-box { display: block; }
   .login-box button { margin-top: 10px; }
   .venue-card { min-height: auto; }
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 14px;
+}
+
+.check-row input {
+  width: auto;
+}
+
+.venue-card.green-card {
+  background: linear-gradient(180deg, rgba(27, 143, 58, 0.16), #ffffff 58%);
+  border: 2px solid var(--green);
+  border-top: 10px solid var(--green);
+}
+
+.venue-card.yellow-card {
+  background: linear-gradient(180deg, rgba(212, 155, 0, 0.2), #ffffff 58%);
+  border: 2px solid var(--yellow);
+  border-top: 10px solid var(--yellow);
+}
+
+.venue-card.red-card {
+  background: linear-gradient(180deg, rgba(180, 35, 24, 0.18), #ffffff 58%);
+  border: 2px solid var(--red);
+  border-top: 10px solid var(--red);
+}
+
+.green-admin-card { border-left: 8px solid var(--green); }
+.yellow-admin-card { border-left: 8px solid var(--yellow); }
+.red-admin-card { border-left: 8px solid var(--red); }
+
+.command-controls {
+  margin-top: 18px;
+}
+
+body.command-mode .hero,
+body.command-mode .info-grid,
+body.command-mode .footer {
+  display: none;
+}
+
+body.command-mode .admin-panel {
+  display: block;
 }

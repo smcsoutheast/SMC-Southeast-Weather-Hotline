@@ -1,5 +1,5 @@
 const ADMIN_PASSWORD = "southeast2026";
-const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase1";
+const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase2";
 
 const tournamentOptions = [
   "Carolina Patriots Cup (NC)",
@@ -30,12 +30,14 @@ const defaultData = {
   globalStatus: "green",
   globalNote: templates.allClear,
   lastUpdated: null,
+  showCurrentOnly: false,
+  currentTournaments: [],
   venues: [
-    { id: safeUUID(), name: "Premier Sports Campus", state: "Florida", event: "Florida Extreme Cup (FL)", status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Wiregrass Ranch Sports Campus", state: "Florida", event: "Gulf Coast Invitational (FL)", status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Wesley Chapel District Park", state: "Florida", event: "Gulf Coast Invitational (FL)", status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Florence Soccer Complex", state: "South Carolina", event: "Florence Cup (SC)", status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Jack Allen Recreation Complex", state: "Alabama", event: "Alabama Super Cup (AL)", status: "green", note: "Normal operations.", map: "" }
+    { id: safeUUID(), name: "Premier Sports Campus", state: "Florida", events: ["Florida Extreme Cup (FL)"], status: "green", note: "Normal operations.", map: "" },
+    { id: safeUUID(), name: "Wiregrass Ranch Sports Campus", state: "Florida", events: ["Gulf Coast Invitational (FL)"], status: "green", note: "Normal operations.", map: "" },
+    { id: safeUUID(), name: "Wesley Chapel District Park", state: "Florida", events: ["Gulf Coast Invitational (FL)"], status: "green", note: "Normal operations.", map: "" },
+    { id: safeUUID(), name: "Florence Soccer Complex", state: "South Carolina", events: ["Florence Cup (SC)"], status: "green", note: "Normal operations.", map: "" },
+    { id: safeUUID(), name: "Jack Allen Recreation Complex", state: "Alabama", events: ["Alabama Super Cup (AL)"], status: "green", note: "Normal operations.", map: "" }
   ],
   history: []
 };
@@ -62,12 +64,14 @@ const fullScreenBtn = document.getElementById("fullScreenBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 const globalForm = document.getElementById("globalForm");
-const globalStatusSelect = document.getElementById("globalStatusSelect");
 const globalTemplateSelect = document.getElementById("globalTemplateSelect");
 const globalNoteInput = document.getElementById("globalNoteInput");
 const venueForm = document.getElementById("venueForm");
 const adminVenueList = document.getElementById("adminVenueList");
-const newVenueEvent = document.getElementById("newVenueEvent");
+const newVenueEvents = document.getElementById("newVenueEvents");
+const publicViewForm = document.getElementById("publicViewForm");
+const showCurrentOnly = document.getElementById("showCurrentOnly");
+const currentTournamentSelect = document.getElementById("currentTournamentSelect");
 
 function safeUUID() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -79,11 +83,10 @@ function clone(value) {
 }
 
 function loadData() {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("smcSoutheastWeatherHotlinePhase1");
   if (!saved) return clone(defaultData);
   try {
-    const parsed = JSON.parse(saved);
-    return migrateData(parsed);
+    return migrateData(JSON.parse(saved));
   } catch {
     return clone(defaultData);
   }
@@ -100,22 +103,33 @@ function normalizeTournamentName(eventName) {
   return map[eventName] || eventName || tournamentOptions[0];
 }
 
+function normalizeEvents(venue) {
+  const rawEvents = Array.isArray(venue.events) ? venue.events : [venue.event];
+  const cleanEvents = rawEvents.map(normalizeTournamentName).filter(event => tournamentOptions.includes(event));
+  return cleanEvents.length ? [...new Set(cleanEvents)] : [tournamentOptions[0]];
+}
+
 function migrateData(saved) {
   const merged = { ...clone(defaultData), ...saved };
   merged.venues = (saved.venues || defaultData.venues).map(venue => ({
-    event: "General",
     map: "",
     note: "Normal operations.",
     status: "green",
+    name: "Unnamed Venue",
+    state: "Florida",
     ...venue,
     id: venue.id || safeUUID(),
-    event: normalizeTournamentName(venue.event)
+    events: normalizeEvents(venue)
   }));
+  merged.currentTournaments = (saved.currentTournaments || []).filter(event => tournamentOptions.includes(event));
+  merged.showCurrentOnly = Boolean(saved.showCurrentOnly);
   merged.history = saved.history || [];
+  merged.globalStatus = calculateGlobalStatus(merged.venues);
   return merged;
 }
 
 function saveData() {
+  data.globalStatus = calculateGlobalStatus(data.venues);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
@@ -131,6 +145,12 @@ function nowStamp() {
 
 function titleCaseStatus(status) {
   return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+function calculateGlobalStatus(venues) {
+  if (venues.some(venue => venue.status === "red")) return "red";
+  if (venues.some(venue => venue.status === "yellow")) return "yellow";
+  return "green";
 }
 
 function addHistory(title, note) {
@@ -157,34 +177,34 @@ function playAlertTone() {
   }
 }
 
-function updateEventFilterOptions() {
-  const selectedValues = getSelectedTournamentFilters();
-  eventFilter.innerHTML = `<option value="all">All Tournaments</option>` + tournamentOptions.map(event => `<option value="${escapeAttr(event)}">${escapeHtml(event)}</option>`).join("");
+function getSelectedValues(selectElement) {
+  return Array.from(selectElement.selectedOptions || []).map(option => option.value);
+}
 
-  const validSelections = selectedValues.filter(value => value === "all" || tournamentOptions.includes(value));
-  if (!validSelections.length || validSelections.includes("all")) {
-    eventFilter.options[0].selected = true;
+function setSelectedValues(selectElement, values) {
+  const selected = new Set(values || []);
+  Array.from(selectElement.options).forEach(option => {
+    option.selected = selected.has(option.value);
+  });
+}
+
+function updateTournamentSelect(selectElement, includeAll = false, selectedValues = []) {
+  if (!selectElement) return;
+  const previous = selectedValues.length ? selectedValues : getSelectedValues(selectElement);
+  selectElement.innerHTML = `${includeAll ? '<option value="all">All Tournaments</option>' : ''}${tournamentOptions.map(event => `<option value="${escapeAttr(event)}">${escapeHtml(event)}</option>`).join("")}`;
+  if (includeAll && (!previous.length || previous.includes("all"))) {
+    selectElement.options[0].selected = true;
   } else {
-    Array.from(eventFilter.options).forEach(option => {
-      option.selected = validSelections.includes(option.value);
-    });
+    setSelectedValues(selectElement, previous.filter(value => value === "all" || tournamentOptions.includes(value)));
   }
 }
 
-function updateNewVenueEventOptions() {
-  if (!newVenueEvent) return;
-  const currentValue = newVenueEvent.value;
-  newVenueEvent.innerHTML = tournamentOptions.map(event => `<option value="${escapeAttr(event)}">${escapeHtml(event)}</option>`).join("");
-  if (tournamentOptions.includes(currentValue)) newVenueEvent.value = currentValue;
-}
-
-function getSelectedTournamentFilters() {
-  return Array.from(eventFilter.selectedOptions || []).map(option => option.value);
-}
-
 function render() {
-  updateEventFilterOptions();
-  updateNewVenueEventOptions();
+  data.globalStatus = calculateGlobalStatus(data.venues);
+  updateTournamentSelect(eventFilter, true);
+  updateTournamentSelect(newVenueEvents, false);
+  updateTournamentSelect(currentTournamentSelect, false, data.currentTournaments);
+  showCurrentOnly.checked = data.showCurrentOnly;
 
   const statusText = `${data.globalStatus.toUpperCase()} STATUS`;
   globalStatus.className = `global-status ${data.globalStatus}`;
@@ -195,24 +215,16 @@ function render() {
   globalNote.textContent = data.globalNote;
   lastUpdated.textContent = data.lastUpdated ? `Last updated: ${data.lastUpdated}` : "Last updated: Not yet updated";
 
-  const selectedState = stateFilter.value;
-  const selectedEvents = getSelectedTournamentFilters();
-  const showAllEvents = !selectedEvents.length || selectedEvents.includes("all");
-  const venues = data.venues.filter(venue => {
-    const regionMatch = selectedState === "all" || venue.state === selectedState;
-    const eventMatch = showAllEvents || selectedEvents.includes(venue.event);
-    return regionMatch && eventMatch;
-  });
-
+  const venues = getPublicVenues();
   venueGrid.innerHTML = venues.length ? venues.map(venue => `
-    <article class="venue-card ${venue.status}-border">
+    <article class="venue-card ${venue.status}-card">
       <h2>${escapeHtml(venue.name)}</h2>
-      <p class="venue-meta">${escapeHtml(venue.state)} | ${escapeHtml(venue.event || "General")}</p>
+      <p class="venue-meta">${escapeHtml(venue.state)} | ${escapeHtml(venue.events.join(", "))}</p>
       <div class="global-status ${venue.status}">${venue.status.toUpperCase()}</div>
       <p class="venue-note">${escapeHtml(venue.note || "No current note.")}</p>
       ${venue.map ? `<a class="map-link" href="${escapeAttr(venue.map)}" target="_blank" rel="noopener">Open Map</a>` : ""}
     </article>
-  `).join("") : `<article class="venue-card"><h2>No venues found</h2><p class="venue-note">Adjust the filters or add a venue in the command center.</p></article>`;
+  `).join("") : `<article class="venue-card"><h2>No venues are currently posted</h2><p class="venue-note">Please check back for tournament updates.</p></article>`;
 
   const activeHistory = data.history.filter(item => within72Hours(item.time)).slice(0, 50);
   historyList.innerHTML = activeHistory.length ? activeHistory.map(item => `
@@ -223,9 +235,24 @@ function render() {
     </div>
   `).join("") : `<p class="muted">No updates posted yet.</p>`;
 
-  globalStatusSelect.value = data.globalStatus;
   globalNoteInput.value = data.globalNote;
   renderAdminVenues();
+}
+
+function getPublicVenues() {
+  if (!data.showCurrentOnly || !data.currentTournaments.length) return data.venues;
+  return data.venues.filter(venue => venue.events.some(event => data.currentTournaments.includes(event)));
+}
+
+function getCommandVenues() {
+  const selectedState = stateFilter.value;
+  const selectedEvents = getSelectedValues(eventFilter);
+  const showAllEvents = !selectedEvents.length || selectedEvents.includes("all");
+  return data.venues.filter(venue => {
+    const regionMatch = selectedState === "all" || venue.state === selectedState;
+    const eventMatch = showAllEvents || venue.events.some(event => selectedEvents.includes(event));
+    return regionMatch && eventMatch;
+  });
 }
 
 function within72Hours(timeText) {
@@ -235,9 +262,16 @@ function within72Hours(timeText) {
 }
 
 function renderAdminVenues() {
-  adminVenueList.innerHTML = data.venues.map(venue => `
-    <div class="admin-venue-card">
+  const venues = getCommandVenues();
+  adminVenueList.innerHTML = venues.length ? venues.map(venue => `
+    <div class="admin-venue-card ${venue.status}-admin-card">
       <h3>${escapeHtml(venue.name)}</h3>
+      <label>Venue name</label>
+      <input type="text" data-action="name" data-id="${venue.id}" value="${escapeAttr(venue.name)}" />
+      <label>Region</label>
+      <select data-action="state" data-id="${venue.id}">
+        ${["Florida", "South Carolina", "Alabama", "Georgia", "North Carolina"].map(state => `<option value="${escapeAttr(state)}" ${venue.state === state ? "selected" : ""}>${escapeHtml(state)}</option>`).join("")}
+      </select>
       <label>Status</label>
       <select data-action="status" data-id="${venue.id}">
         <option value="green" ${venue.status === "green" ? "selected" : ""}>Green</option>
@@ -256,9 +290,9 @@ function renderAdminVenues() {
       </select>
       <label>Public note</label>
       <textarea rows="3" data-action="note" data-id="${venue.id}">${escapeHtml(venue.note || "")}</textarea>
-      <label>Tournament</label>
-      <select data-action="event" data-id="${venue.id}">
-        ${tournamentOptions.map(event => `<option value="${escapeAttr(event)}" ${venue.event === event ? "selected" : ""}>${escapeHtml(event)}</option>`).join("")}
+      <label>Tournaments</label>
+      <select multiple size="8" data-action="events" data-id="${venue.id}">
+        ${tournamentOptions.map(event => `<option value="${escapeAttr(event)}" ${venue.events.includes(event) ? "selected" : ""}>${escapeHtml(event)}</option>`).join("")}
       </select>
       <label>Map link</label>
       <input type="url" data-action="map" data-id="${venue.id}" value="${escapeAttr(venue.map || "")}" />
@@ -267,7 +301,7 @@ function renderAdminVenues() {
         <button class="secondary" data-action="deleteVenue" data-id="${venue.id}" type="button">Delete</button>
       </div>
     </div>
-  `).join("");
+  `).join("") : `<p class="muted">No venues match the command center filters.</p>`;
 }
 
 function unlockAdmin() {
@@ -287,11 +321,8 @@ function lockAdmin() {
 }
 
 verifyBtn.addEventListener("click", () => {
-  if (passwordInput.value === ADMIN_PASSWORD) {
-    unlockAdmin();
-  } else {
-    alert("Incorrect password.");
-  }
+  if (passwordInput.value === ADMIN_PASSWORD) unlockAdmin();
+  else alert("Incorrect password.");
 });
 
 passwordInput.addEventListener("keydown", event => {
@@ -315,12 +346,19 @@ globalTemplateSelect.addEventListener("change", () => {
 
 globalForm.addEventListener("submit", event => {
   event.preventDefault();
-  const oldStatus = data.globalStatus;
-  data.globalStatus = globalStatusSelect.value;
   data.globalNote = globalNoteInput.value.trim() || "No current note.";
   data.lastUpdated = nowStamp();
-  addHistory(`Global status changed to ${titleCaseStatus(data.globalStatus)}`, data.globalNote);
-  if (data.globalStatus === "red" && oldStatus !== "red") playAlertTone();
+  addHistory("Global note updated", data.globalNote);
+  saveData();
+  render();
+});
+
+publicViewForm.addEventListener("submit", event => {
+  event.preventDefault();
+  data.showCurrentOnly = showCurrentOnly.checked;
+  data.currentTournaments = getSelectedValues(currentTournamentSelect).filter(value => tournamentOptions.includes(value));
+  data.lastUpdated = nowStamp();
+  addHistory("Public tournament view updated", data.showCurrentOnly ? `Showing current tournaments: ${data.currentTournaments.join(", ") || "None selected"}` : "Showing all venue tournaments.");
   saveData();
   render();
 });
@@ -329,10 +367,11 @@ venueForm.addEventListener("submit", event => {
   event.preventDefault();
   const name = document.getElementById("newVenueName").value.trim();
   const state = document.getElementById("newVenueState").value;
-  const eventName = document.getElementById("newVenueEvent").value || tournamentOptions[0];
+  const events = getSelectedValues(newVenueEvents).filter(value => tournamentOptions.includes(value));
   const map = document.getElementById("newVenueMap").value.trim();
   if (!name) return alert("Enter a venue name.");
-  data.venues.push({ id: safeUUID(), name, state, event: eventName, status: "green", note: "Normal operations.", map });
+  if (!events.length) return alert("Select at least one tournament.");
+  data.venues.push({ id: safeUUID(), name, state, events, status: "green", note: "Normal operations.", map });
   data.lastUpdated = nowStamp();
   addHistory(`Venue added: ${name}`, "Venue added to the Southeast hotline.");
   saveData();
@@ -365,12 +404,16 @@ adminVenueList.addEventListener("click", event => {
   if (action === "saveVenue") {
     const card = event.target.closest(".admin-venue-card");
     const oldStatus = venue.status;
+    const oldName = venue.name;
+    venue.name = card.querySelector('[data-action="name"]').value.trim() || "Unnamed Venue";
+    venue.state = card.querySelector('[data-action="state"]').value;
     venue.status = card.querySelector('[data-action="status"]').value;
     venue.note = card.querySelector('[data-action="note"]').value.trim() || "No current note.";
-    venue.event = card.querySelector('[data-action="event"]').value || tournamentOptions[0];
+    venue.events = getSelectedValues(card.querySelector('[data-action="events"]')).filter(value => tournamentOptions.includes(value));
+    if (!venue.events.length) venue.events = [tournamentOptions[0]];
     venue.map = card.querySelector('[data-action="map"]').value.trim();
     data.lastUpdated = nowStamp();
-    addHistory(`${venue.name} changed to ${titleCaseStatus(venue.status)}`, venue.note);
+    addHistory(`${venue.name} saved`, `${oldName !== venue.name ? `Renamed from ${oldName}. ` : ""}Status: ${titleCaseStatus(venue.status)}. ${venue.note}`);
     if (venue.status === "red" && oldStatus !== "red") playAlertTone();
   }
 
@@ -400,13 +443,12 @@ clearHistoryBtn.addEventListener("click", () => {
 
 function setAllStatuses(status) {
   const oldStatus = data.globalStatus;
-  data.globalStatus = status;
   data.venues = data.venues.map(venue => ({ ...venue, status }));
   data.lastUpdated = nowStamp();
   data.globalNote = status === "green" ? templates.allClear : status === "yellow" ? templates.monitoring : templates.lightningDelay;
   addHistory(`All venues changed to ${titleCaseStatus(status)}`, data.globalNote);
-  if (status === "red" && oldStatus !== "red") playAlertTone();
   saveData();
+  if (status === "red" && oldStatus !== "red") playAlertTone();
   render();
 }
 
