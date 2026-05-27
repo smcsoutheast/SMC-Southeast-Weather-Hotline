@@ -152,17 +152,32 @@ h1 { font-size: clamp(44px, 10vw, 86px); margin: 0; letter-spacing: 0.06em; }
 .history-item, .incident-item { border-bottom: 1px solid #e4e7ec; padding: 12px 0; }
 .history-item strong, .incident-item strong { display: block; }
 .history-item span, .incident-item span { color: var(--muted); font-size: 14px; }
-.status-history-item { border: 1px solid #e4e7ec; border-left-width: 8px; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; background: #fff; }
-.green-history { border-left-color: var(--green); background: rgba(18, 183, 106, 0.08); }
-.yellow-history { border-left-color: var(--yellow); background: rgba(247, 144, 9, 0.1); }
-.red-history { border-left-color: var(--red); background: rgba(217, 45, 32, 0.08); }
-.neutral-history { border-left-color: #98a2b3; background: #f9fafb; }
+.status-history-item {
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  color: var(--white);
+}
+.green-history { background: var(--green); }
+.yellow-history { background: var(--yellow); }
+.red-history { background: var(--red); }
+.status-history-item span,
+.status-history-item p { color: var(--white); }
 .history-title-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.history-status-pill { border-radius: 999px; padding: 5px 10px; font-size: 12px; font-weight: 900; color: var(--white); text-transform: uppercase; }
-.history-status-pill.green { background: var(--green); }
-.history-status-pill.yellow { background: var(--yellow); color: #1b1600; }
-.history-status-pill.red { background: var(--red); }
-.history-status-pill.neutral { background: #667085; }
+.history-status-pill {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--white);
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.45);
+}
+.history-status-pill.green,
+.history-status-pill.yellow,
+.history-status-pill.red { color: var(--white); }
 .panel-header { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
 .compact-header { align-items: center; }
 

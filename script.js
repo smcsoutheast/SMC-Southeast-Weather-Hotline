@@ -343,9 +343,13 @@ function renderTimeline() {
 }
 
 function renderHistory() {
-  elements.historyList.innerHTML = data.history.length ? data.history.slice(0, 18).map(item => {
-    const status = detectHistoryStatus(item);
-    const statusLabel = status === "neutral" ? "Info" : titleCaseStatus(status);
+  const visibleHistory = data.history
+    .map(item => ({ ...item, displayStatus: detectHistoryStatus(item) }))
+    .filter(item => ["green", "yellow", "red"].includes(item.displayStatus));
+
+  elements.historyList.innerHTML = visibleHistory.length ? visibleHistory.slice(0, 18).map(item => {
+    const status = item.displayStatus;
+    const statusLabel = titleCaseStatus(status);
     return `
       <div class="history-item status-history-item ${status}-history">
         <div class="history-title-row">
@@ -356,7 +360,7 @@ function renderHistory() {
         <p>${escapeHtml(item.note || "No details provided.")}</p>
       </div>
     `;
-  }).join("") : `<p class="muted">No status updates have been posted yet.</p>`;
+  }).join("") : `<p class="muted">No Green, Yellow, or Red status updates have been posted yet.</p>`;
 }
 
 function renderAdminVenues() {
