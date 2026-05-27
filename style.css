@@ -57,7 +57,7 @@ h1 { font-size: clamp(44px, 10vw, 86px); margin: 0; letter-spacing: 0.06em; }
   box-shadow: var(--shadow);
 }
 .green { background: var(--green); color: var(--white); }
-.yellow { background: var(--yellow); color: #1b1600; }
+.yellow { background: var(--yellow); color: var(--white); }
 .red { background: var(--red); color: var(--white); }
 .last-updated { margin-bottom: 0; opacity: 0.88; }
 
@@ -101,7 +101,7 @@ h1 { font-size: clamp(44px, 10vw, 86px); margin: 0; letter-spacing: 0.06em; }
 }
 .venue-card.yellow-card {
   background: var(--yellow);
-  color: #1b1600;
+  color: var(--white);
 }
 .venue-card.red-card {
   background: var(--red);
@@ -269,7 +269,8 @@ button.small-btn { padding: 10px 14px; white-space: nowrap; }
 body.command-mode .hero,
 body.command-mode .info-grid,
 body.command-mode .footer,
-body.command-mode .history-panel {
+body.command-mode .history-panel,
+body.command-mode .field-status-panel {
   display: none;
 }
 body.command-mode .page-shell { width: min(1400px, calc(100% - 28px)); margin-top: 24px; }
@@ -290,3 +291,44 @@ body.command-mode .admin-drawer { width: min(980px, 100vw); }
   .venue-card { min-height: auto; }
   .command-tools, .admin-actions { width: 100%; }
 }
+
+
+.field-status-panel { margin-bottom: 22px; }
+.field-status-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.field-status-card {
+  border-radius: 18px;
+  padding: 18px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 24px rgba(7, 26, 51, 0.08);
+}
+.field-status-card h3 { margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.field-status-card p { margin: 8px 0 0; line-height: 1.45; }
+.field-meta { color: var(--muted); font-size: 13px; font-weight: 700; }
+.field-status-pill,
+.alert-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-weight: 900;
+  color: var(--white);
+  margin-top: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.field-open { background: var(--green); }
+.field-delayed,
+.field-under-review,
+.field-maintenance { background: var(--yellow); }
+.field-closed { background: var(--red); }
+.lightning-countdown { font-size: 13px; font-weight: 800; color: var(--red); margin-top: 6px; }
+.ai-output-actions { margin-top: 12px; }
+.history-status-pill.yellow,
+.venue-status-pill.yellow,
+.alert-status-pill.yellow { color: var(--white); }

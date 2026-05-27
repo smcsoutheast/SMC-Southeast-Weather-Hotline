@@ -9,7 +9,11 @@ This is a self-contained GitHub Pages weather hotline for Soccer Management Comp
 - script.js
 - README.md
 
-## Phase 2 updates included
+## Current version
+
+Phase 3 adds the next operational layer on top of the full Phase 2 build.
+
+## Phase 2 features included
 
 - Multi-admin access
 - Admin access minimized to shield icon
@@ -21,12 +25,26 @@ This is a self-contained GitHub Pages weather hotline for Soccer Management Comp
 - Command Center-only filters
 - Public current tournament visibility control
 - Incident logging
-- Live operations timeline
+- Private operations timeline
 - File and photo uploads for incident records
 - Public map and venue detail support
 - Full-screen command mode
 - Emergency Red button
 - All Green and All Yellow buttons
+
+## Phase 3 features included
+
+- Automated lightning alert workflow
+- 10-mile Red status trigger
+- 15-mile Yellow monitoring trigger
+- 30-minute lightning clear timer
+- Dynamic public field status board
+- Field-level status records by venue
+- AI-generated weather update draft builder
+- Apply generated update to a venue
+- Apply generated update as the global public note
+- Status history shows only Green, Yellow, and Red status updates
+- Status badges use colored backgrounds with white text
 
 ## Admin access
 
@@ -60,9 +78,38 @@ https://smcsoccer.github.io/SMC-Southeast-Weather-Hotline/
 2. Click the shield icon.
 3. Enter an admin password.
 4. Update venue status, notes, details, maps, and tournament assignments.
-5. Add timeline updates for public operations notes.
-6. Log private incidents with optional file uploads.
-7. Use Public Tournament View to show only current tournaments.
+5. Use Public Tournament View to show only current tournaments.
+6. Use Automated Lightning Alerts to enter strike distance and minutes since last strike.
+7. Use AI-Generated Weather Update to create a public note from a weather alert.
+8. Use Dynamic Field Status Board to post field-level updates.
+9. Log private incidents with optional file uploads.
+10. Use the private Operations Timeline for staff updates.
+
+## Lightning alert logic
+
+- 10 miles or less sets the selected venue to Red.
+- 15 miles or less sets the selected venue to Yellow.
+- 30 minutes since last strike sets the selected venue to Green.
+- A Red lightning alert starts a 30-minute countdown.
+- When the countdown finishes, the venue changes to Green with a restart confirmation note.
+
+## Field status board
+
+Field status options:
+
+- Open
+- Delayed
+- Closed
+- Under Review
+- Maintenance
+
+The public Field Status Board appears only when field status records exist.
+
+## AI-generated weather update notes
+
+The update builder runs in the browser. It does not use an external AI service or API key.
+
+Use it to turn alert details into a clean public update, then review the draft before applying it.
 
 ## Status logic
 
@@ -84,12 +131,12 @@ This means:
 
 For live multi-device use, upgrade the storage layer to Firebase.
 
-Latest display change:
+## Public venue cards
 
-The public venue cards now show only the venue name, status, and public note. Venue names display in uppercase. Card content is centered. Card color matches the venue status.
+The public venue cards show only:
 
+- Venue name
+- Status
+- Public note
 
-Latest changes
-
-- Operations Timeline is now available only inside Admin Access.
-- Status History entries are color coded by status.
+Venue names display in uppercase. Card content is centered. Card color matches the venue status.

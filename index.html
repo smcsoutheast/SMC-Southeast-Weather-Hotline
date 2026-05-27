@@ -34,6 +34,16 @@
 
     <section id="venueGrid" class="venue-grid" aria-live="polite"></section>
 
+    <section id="fieldStatusPanel" class="panel field-status-panel hidden">
+      <div class="panel-header">
+        <div>
+          <h2>Field Status Board</h2>
+          <p class="muted">Field-level updates for current public venues</p>
+        </div>
+      </div>
+      <div id="fieldStatusBoard" class="field-status-board"></div>
+    </section>
+
     <section class="info-grid">
       <article class="panel">
         <h2>Status Key</h2>
@@ -152,6 +162,99 @@
           <textarea id="globalNoteInput" rows="4"></textarea>
           <button type="submit">Save Global Note</button>
         </form>
+
+        <form id="lightningForm" class="admin-form">
+          <h3>Automated Lightning Alerts</h3>
+          <p class="field-help">Enter the latest strike distance. The system will set the venue to Red at 10 miles or less, Yellow at 15 miles or less, and Green after a 30-minute clear timer.</p>
+          <label for="lightningVenueSelect">Venue</label>
+          <select id="lightningVenueSelect"></select>
+          <label for="lightningDistanceInput">Closest lightning strike distance in miles</label>
+          <input id="lightningDistanceInput" type="number" min="0" step="0.1" placeholder="Example: 8.5" />
+          <label for="lightningMinutesInput">Minutes since last detected strike</label>
+          <input id="lightningMinutesInput" type="number" min="0" step="1" placeholder="Example: 12" />
+          <label for="lightningSourceSelect">Alert source</label>
+          <select id="lightningSourceSelect">
+            <option value="Radar or lightning app">Radar or lightning app</option>
+            <option value="Venue staff report">Venue staff report</option>
+            <option value="Weather service alert">Weather service alert</option>
+            <option value="Tournament director decision">Tournament director decision</option>
+          </select>
+          <label for="lightningNotesInput">Private lightning note</label>
+          <textarea id="lightningNotesInput" rows="3" placeholder="Add source details or staff instructions."></textarea>
+          <button type="submit">Apply Lightning Check</button>
+        </form>
+
+        <section class="admin-form">
+          <div class="panel-header compact-header">
+            <div>
+              <h3>Active Lightning Alerts</h3>
+              <p class="field-help">Countdowns and alert records for staff.</p>
+            </div>
+          </div>
+          <div id="lightningAlertList" class="incident-list"></div>
+        </section>
+
+        <form id="aiUpdateForm" class="admin-form">
+          <h3>AI-Generated Weather Update</h3>
+          <p class="field-help">Build a polished public update from a weather alert. Review the draft before applying it.</p>
+          <label for="aiVenueSelect">Venue</label>
+          <select id="aiVenueSelect"></select>
+          <label for="aiAlertTypeSelect">Weather alert type</label>
+          <select id="aiAlertTypeSelect">
+            <option value="Lightning">Lightning</option>
+            <option value="Severe Weather">Severe Weather</option>
+            <option value="Heavy Rain">Heavy Rain</option>
+            <option value="Heat Advisory">Heat Advisory</option>
+            <option value="Field Conditions">Field Conditions</option>
+            <option value="Resume Play">Resume Play</option>
+          </select>
+          <label for="aiSeveritySelect">Action level</label>
+          <select id="aiSeveritySelect">
+            <option value="Monitoring">Monitoring</option>
+            <option value="Delay">Delay</option>
+            <option value="Suspended">Suspended</option>
+            <option value="All Clear">All Clear</option>
+          </select>
+          <label for="aiWeatherDetailsInput">Weather alert details</label>
+          <textarea id="aiWeatherDetailsInput" rows="4" placeholder="Example: Lightning detected within 8 miles. Teams should clear fields now."></textarea>
+          <button type="submit">Generate Update Draft</button>
+          <label for="aiGeneratedOutput">Generated public update</label>
+          <textarea id="aiGeneratedOutput" rows="5" placeholder="Generated update will appear here."></textarea>
+          <div class="admin-actions">
+            <button id="aiApplyVenueBtn" type="button">Apply to Venue</button>
+            <button id="aiApplyGlobalBtn" class="secondary" type="button">Apply as Global Note</button>
+          </div>
+        </form>
+
+        <form id="fieldStatusForm" class="admin-form">
+          <h3>Dynamic Field Status Board</h3>
+          <label for="fieldVenueSelect">Venue</label>
+          <select id="fieldVenueSelect"></select>
+          <label for="fieldNameInput">Field name or number</label>
+          <input id="fieldNameInput" type="text" placeholder="Example: Field 1" />
+          <label for="fieldStatusSelect">Field status</label>
+          <select id="fieldStatusSelect">
+            <option value="Open">Open</option>
+            <option value="Delayed">Delayed</option>
+            <option value="Closed">Closed</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Maintenance">Maintenance</option>
+          </select>
+          <label for="fieldNoteInput">Public field note</label>
+          <textarea id="fieldNoteInput" rows="3" placeholder="Example: Field 3 is under review due to standing water."></textarea>
+          <button type="submit">Save Field Status</button>
+        </form>
+
+        <section class="admin-form">
+          <div class="panel-header compact-header">
+            <div>
+              <h3>Field Status Records</h3>
+              <p class="field-help">These records show publicly in the Field Status Board.</p>
+            </div>
+            <button id="clearFieldBoardBtn" class="secondary small-btn" type="button">Clear Field Board</button>
+          </div>
+          <div id="fieldBoardAdminList" class="incident-list"></div>
+        </section>
 
         <form id="timelineForm" class="admin-form">
           <h3>Add Timeline Update</h3>

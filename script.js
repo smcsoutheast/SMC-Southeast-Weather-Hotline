@@ -3,8 +3,9 @@ const ADMIN_USERS = [
   { name: "Ashley", role: "Tournament Operations", password: "ashley2026$" }
 ];
 
-const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase2Full";
+const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase3";
 const LEGACY_KEYS = [
+  "smcSoutheastWeatherHotlinePhase2Full",
   "smcSoutheastWeatherHotlinePhase2",
   "smcSoutheastWeatherHotlinePhase1",
   "smcSoutheastWeatherHotline"
@@ -27,6 +28,12 @@ const tournamentOptions = [
   "Sarasota Cup GIRLS (FL)",
   "Sarasota Cup BOYS (FL)"
 ];
+
+const LIGHTNING_RED_MILES = 10;
+const LIGHTNING_YELLOW_MILES = 15;
+const LIGHTNING_CLEAR_MINUTES = 30;
+
+const fieldStatusOptions = ["Open", "Delayed", "Closed", "Under Review", "Maintenance"];
 
 const templates = {
   allClear: "All venues are currently operating as scheduled. SMC staff will continue to monitor conditions and post updates here as needed.",
@@ -53,7 +60,9 @@ const defaultData = {
   ],
   history: [],
   timeline: [],
-  incidents: []
+  incidents: [],
+  lightningAlerts: [],
+  fieldBoard: []
 };
 
 let data = loadData();
@@ -68,6 +77,8 @@ const elements = {
   lastUpdated: document.getElementById("lastUpdated"),
   globalNote: document.getElementById("globalNote"),
   venueGrid: document.getElementById("venueGrid"),
+  fieldStatusPanel: document.getElementById("fieldStatusPanel"),
+  fieldStatusBoard: document.getElementById("fieldStatusBoard"),
   timelineList: document.getElementById("timelineList"),
   historyList: document.getElementById("historyList"),
   stateFilter: document.getElementById("stateFilter"),
@@ -102,7 +113,29 @@ const elements = {
   incidentNoteInput: document.getElementById("incidentNoteInput"),
   incidentFileInput: document.getElementById("incidentFileInput"),
   incidentList: document.getElementById("incidentList"),
-  clearIncidentsBtn: document.getElementById("clearIncidentsBtn")
+  clearIncidentsBtn: document.getElementById("clearIncidentsBtn"),
+  lightningForm: document.getElementById("lightningForm"),
+  lightningVenueSelect: document.getElementById("lightningVenueSelect"),
+  lightningDistanceInput: document.getElementById("lightningDistanceInput"),
+  lightningMinutesInput: document.getElementById("lightningMinutesInput"),
+  lightningSourceSelect: document.getElementById("lightningSourceSelect"),
+  lightningNotesInput: document.getElementById("lightningNotesInput"),
+  lightningAlertList: document.getElementById("lightningAlertList"),
+  aiUpdateForm: document.getElementById("aiUpdateForm"),
+  aiVenueSelect: document.getElementById("aiVenueSelect"),
+  aiAlertTypeSelect: document.getElementById("aiAlertTypeSelect"),
+  aiSeveritySelect: document.getElementById("aiSeveritySelect"),
+  aiWeatherDetailsInput: document.getElementById("aiWeatherDetailsInput"),
+  aiGeneratedOutput: document.getElementById("aiGeneratedOutput"),
+  aiApplyVenueBtn: document.getElementById("aiApplyVenueBtn"),
+  aiApplyGlobalBtn: document.getElementById("aiApplyGlobalBtn"),
+  fieldStatusForm: document.getElementById("fieldStatusForm"),
+  fieldVenueSelect: document.getElementById("fieldVenueSelect"),
+  fieldNameInput: document.getElementById("fieldNameInput"),
+  fieldStatusSelect: document.getElementById("fieldStatusSelect"),
+  fieldNoteInput: document.getElementById("fieldNoteInput"),
+  fieldBoardAdminList: document.getElementById("fieldBoardAdminList"),
+  clearFieldBoardBtn: document.getElementById("clearFieldBoardBtn")
 };
 
 function safeUUID() {
@@ -179,6 +212,8 @@ function migrateData(saved) {
   merged.history = Array.isArray(saved.history) ? saved.history : [];
   merged.timeline = Array.isArray(saved.timeline) ? saved.timeline : [];
   merged.incidents = Array.isArray(saved.incidents) ? saved.incidents : [];
+  merged.lightningAlerts = Array.isArray(saved.lightningAlerts) ? saved.lightningAlerts : [];
+  merged.fieldBoard = Array.isArray(saved.fieldBoard) ? saved.fieldBoard : [];
   merged.globalStatus = calculateGlobalStatus(merged.venues);
   merged.globalNote = saved.globalNote || templates.allClear;
   return merged;
@@ -275,8 +310,21 @@ function updateTournamentSelect(selectElement, includeAll = false, selectedValue
   }
 }
 
-function updateIncidentVenueSelect() {
-  elements.incidentVenueSelect.innerHTML = data.venues.map(venue => `<option value="${escapeAttr(venue.id)}">${escapeHtml(venue.name)}</option>`).join("");
+function updateVenueSelect(selectElement, includeGlobal = false) {
+  if (!selectElement) return;
+  const previous = selectElement.value;
+  const globalOption = includeGlobal ? '<option value="global">All Public Venues</option>' : '';
+  selectElement.innerHTML = `${globalOption}${data.venues.map(venue => `<option value="${escapeAttr(venue.id)}">${escapeHtml(venue.name)}</option>`).join("")}`;
+  if (previous && Array.from(selectElement.options).some(option => option.value === previous)) {
+    selectElement.value = previous;
+  }
+}
+
+function updateAllVenueSelects() {
+  updateVenueSelect(elements.incidentVenueSelect);
+  updateVenueSelect(elements.lightningVenueSelect);
+  updateVenueSelect(elements.aiVenueSelect, true);
+  updateVenueSelect(elements.fieldVenueSelect);
 }
 
 function render() {
@@ -284,7 +332,7 @@ function render() {
   updateTournamentSelect(elements.eventFilter, true);
   updateTournamentSelect(elements.newVenueEvents, false);
   updateTournamentSelect(elements.currentTournamentSelect, false, data.currentTournaments);
-  updateIncidentVenueSelect();
+  updateAllVenueSelects();
 
   elements.showCurrentOnly.checked = data.showCurrentOnly;
   const statusText = `${data.globalStatus.toUpperCase()} STATUS`;
@@ -298,10 +346,13 @@ function render() {
   elements.lastUpdated.textContent = data.lastUpdated ? `Last updated: ${data.lastUpdated}` : "Last updated: Not yet updated";
 
   renderPublicVenues();
+  renderFieldStatusBoard();
   renderTimeline();
   renderHistory();
   renderAdminVenues();
   renderIncidents();
+  renderLightningAlerts();
+  renderFieldBoardAdmin();
   updateSessionText();
 }
 
@@ -332,6 +383,30 @@ function renderPublicVenues() {
   `).join("") : `<article class="venue-card empty-card"><h2>NO CURRENT PUBLIC VENUES</h2><p class="venue-note">The command center is set to show current tournaments only, but no venue matches the selected tournaments.</p></article>`;
 }
 
+function fieldStatusClass(status) {
+  const clean = String(status || "").toLowerCase().replace(/\s+/g, "-");
+  return `field-${clean}`;
+}
+
+function getPublicFieldBoardItems() {
+  const publicVenueIds = new Set(getPublicVenues().map(venue => venue.id));
+  return data.fieldBoard.filter(item => publicVenueIds.has(item.venueId));
+}
+
+function renderFieldStatusBoard() {
+  const items = getPublicFieldBoardItems();
+  elements.fieldStatusPanel.classList.toggle("hidden", !items.length);
+  elements.fieldStatusBoard.innerHTML = items.length ? items.map(item => `
+    <article class="field-status-card">
+      <h3>${escapeHtml(item.fieldName)}</h3>
+      <div class="field-meta">${escapeHtml(item.venueName)}</div>
+      <span class="field-status-pill ${fieldStatusClass(item.status)}">${escapeHtml(item.status)}</span>
+      <p>${escapeHtml(item.note || "No field note posted.")}</p>
+      <div class="field-meta">Updated: ${escapeHtml(item.time || "Time not recorded")}</div>
+    </article>
+  `).join("") : "";
+}
+
 function renderTimeline() {
   elements.timelineList.innerHTML = data.timeline.length ? data.timeline.slice(0, 12).map(item => `
     <div class="history-item">
@@ -344,11 +419,10 @@ function renderTimeline() {
 
 function renderHistory() {
   const visibleHistory = data.history
-    .map(item => ({ ...item, displayStatus: detectHistoryStatus(item) }))
-    .filter(item => ["green", "yellow", "red"].includes(item.displayStatus));
+    .filter(item => ["green", "yellow", "red"].includes(item.status));
 
   elements.historyList.innerHTML = visibleHistory.length ? visibleHistory.slice(0, 18).map(item => {
-    const status = item.displayStatus;
+    const status = item.status;
     const statusLabel = titleCaseStatus(status);
     return `
       <div class="history-item status-history-item ${status}-history">
@@ -425,6 +499,114 @@ function renderIncidents() {
       ${incident.files && incident.files.length ? `<ul class="file-list">${incident.files.map(file => `<li><a class="file-link" href="${escapeAttr(file.dataUrl)}" download="${escapeAttr(file.name)}">${escapeHtml(file.name)}</a> <span>(${escapeHtml(formatBytes(file.size))})</span></li>`).join("")}</ul>` : ""}
     </div>
   `).join("") : `<p class="muted">No incidents recorded yet.</p>`;
+}
+
+function renderLightningAlerts() {
+  elements.lightningAlertList.innerHTML = data.lightningAlerts.length ? data.lightningAlerts.slice(0, 12).map(alert => {
+    const countdown = getLightningCountdownText(alert);
+    return `
+      <div class="incident-item">
+        <strong>${escapeHtml(alert.venueName)} | ${escapeHtml(titleCaseStatus(alert.status))}</strong>
+        <span>${escapeHtml(alert.time || "Time not recorded")} | ${escapeHtml(alert.admin || "System")}</span>
+        <p>${escapeHtml(alert.note || "No alert note entered.")}</p>
+        <span class="alert-status-pill ${escapeAttr(alert.status)}">${escapeHtml(titleCaseStatus(alert.status))}</span>
+        ${countdown ? `<div class="lightning-countdown">${escapeHtml(countdown)}</div>` : ""}
+      </div>
+    `;
+  }).join("") : `<p class="muted">No lightning alerts recorded yet.</p>`;
+}
+
+function renderFieldBoardAdmin() {
+  elements.fieldBoardAdminList.innerHTML = data.fieldBoard.length ? data.fieldBoard.map(item => `
+    <div class="incident-item">
+      <strong>${escapeHtml(item.fieldName)} | ${escapeHtml(item.venueName)}</strong>
+      <span>${escapeHtml(item.time || "Time not recorded")} | ${escapeHtml(item.admin || "System")}</span>
+      <p>${escapeHtml(item.note || "No field note posted.")}</p>
+      <span class="field-status-pill ${fieldStatusClass(item.status)}">${escapeHtml(item.status)}</span>
+    </div>
+  `).join("") : `<p class="muted">No field statuses posted yet.</p>`;
+}
+
+function getLightningCountdownText(alert) {
+  if (!alert.allClearTarget || alert.status !== "red") return "";
+  const remaining = alert.allClearTarget - Date.now();
+  if (remaining <= 0) return "All-clear timer complete. Confirm conditions before play resumes.";
+  const minutes = Math.ceil(remaining / 60000);
+  return `${minutes} minute lightning timer remaining`;
+}
+
+function processLightningTimers() {
+  let changed = false;
+  data.lightningAlerts.forEach(alert => {
+    if (alert.status !== "red" || !alert.allClearTarget || alert.autoCleared || Date.now() < alert.allClearTarget) return;
+    const venue = data.venues.find(item => item.id === alert.venueId);
+    if (!venue) return;
+    venue.status = "green";
+    venue.note = "The lightning timer has cleared. Play may resume when SMC staff, referees, and facility staff confirm fields are safe.";
+    alert.status = "green";
+    alert.autoCleared = true;
+    alert.note = "30-minute lightning timer completed. Staff confirmation is still required before restart.";
+    data.lastUpdated = nowStamp();
+    addHistory(`${venue.name} lightning all clear`, venue.note, "green");
+    addTimeline(`${venue.name} lightning timer cleared`, venue.note);
+    changed = true;
+  });
+  return changed;
+}
+
+function getStatusFromAiInputs(alertType, severity) {
+  if (severity === "All Clear" || alertType === "Resume Play") return "green";
+  if (severity === "Suspended") return "red";
+  if (alertType === "Lightning" && severity === "Delay") return "red";
+  return "yellow";
+}
+
+function generateWeatherUpdateDraft() {
+  const selectedVenueId = elements.aiVenueSelect.value;
+  const venue = data.venues.find(item => item.id === selectedVenueId);
+  const venueText = selectedVenueId === "global" ? "all public venues" : venue ? venue.name : "the selected venue";
+  const alertType = elements.aiAlertTypeSelect.value;
+  const severity = elements.aiSeveritySelect.value;
+  const details = elements.aiWeatherDetailsInput.value.trim();
+  const status = getStatusFromAiInputs(alertType, severity);
+
+  if (status === "green") {
+    return `All clear for ${venueText}. SMC staff have reviewed the latest ${alertType.toLowerCase()} update. Teams should return to normal event operations and follow referee or field marshal instructions.`;
+  }
+
+  if (status === "red") {
+    return `${alertType} alert for ${venueText}. Games are temporarily suspended. Teams should clear the fields and wait for further instructions from SMC staff. ${details}`.trim();
+  }
+
+  return `${alertType} monitoring is active for ${venueText}. Games remain scheduled unless noted by SMC staff. Teams should stay close to their field and continue checking this page for updates. ${details}`.trim();
+}
+
+function applyGeneratedUpdateToVenue() {
+  const note = elements.aiGeneratedOutput.value.trim();
+  const venue = data.venues.find(item => item.id === elements.aiVenueSelect.value);
+  if (!note) return alert("Generate or enter an update first.");
+  if (!venue) return alert("Select one venue before applying this update.");
+  const oldStatus = venue.status;
+  const status = getStatusFromAiInputs(elements.aiAlertTypeSelect.value, elements.aiSeveritySelect.value);
+  venue.status = status;
+  venue.note = note;
+  data.lastUpdated = nowStamp();
+  addHistory(`${venue.name} ${titleCaseStatus(status)} update`, note, status);
+  addTimeline(`${venue.name} generated weather update`, note);
+  saveData();
+  if (status === "red" && oldStatus !== "red") playAlertTone();
+  render();
+}
+
+function applyGeneratedUpdateToGlobal() {
+  const note = elements.aiGeneratedOutput.value.trim();
+  if (!note) return alert("Generate or enter an update first.");
+  data.globalNote = note;
+  data.lastUpdated = nowStamp();
+  addHistory("Global generated weather update", note, data.globalStatus);
+  addTimeline("Global generated weather update", note);
+  saveData();
+  render();
 }
 
 function updateSessionText() {
@@ -561,7 +743,6 @@ elements.timelineForm.addEventListener("submit", event => {
   if (!note) return alert("Enter a timeline note.");
   data.lastUpdated = nowStamp();
   addTimeline(title, note);
-  addHistory(title, note, detectHistoryStatus({ title, note }));
   saveData();
   elements.timelineForm.reset();
   render();
@@ -662,7 +843,7 @@ elements.incidentForm.addEventListener("submit", async event => {
     admin: adminLabel()
   });
   data.incidents = data.incidents.slice(0, 75);
-  addHistory(`Incident logged: ${venue.name}`, `${elements.incidentTypeSelect.value} incident logged by ${adminLabel()}.`);
+  addTimeline(`Incident logged: ${venue.name}`, `${elements.incidentTypeSelect.value} incident logged by ${adminLabel()}.`);
   saveData();
   elements.incidentForm.reset();
   render();
@@ -673,6 +854,108 @@ elements.clearIncidentsBtn.addEventListener("click", () => {
   if (!confirm("Clear incident records from this browser?")) return;
   data.incidents = [];
   addHistory("Incident records cleared", `${adminLabel()} cleared incident records.`);
+  saveData();
+  render();
+});
+
+elements.lightningForm.addEventListener("submit", event => {
+  event.preventDefault();
+  const venue = data.venues.find(item => item.id === elements.lightningVenueSelect.value);
+  if (!venue) return alert("Select a venue.");
+  const distance = Number.parseFloat(elements.lightningDistanceInput.value);
+  const minutes = Number.parseInt(elements.lightningMinutesInput.value, 10);
+  if (Number.isNaN(distance) && Number.isNaN(minutes)) return alert("Enter a strike distance or minutes since last strike.");
+  const source = elements.lightningSourceSelect.value;
+  const details = elements.lightningNotesInput.value.trim();
+  const oldStatus = venue.status;
+  let status = "yellow";
+  let note = "Lightning is being monitored near this venue. Games remain scheduled unless SMC staff post a delay or suspension.";
+  let allClearTarget = null;
+
+  if (!Number.isNaN(distance) && distance <= LIGHTNING_RED_MILES && (Number.isNaN(minutes) || minutes < LIGHTNING_CLEAR_MINUTES)) {
+    status = "red";
+    allClearTarget = Date.now() + Math.max(1, LIGHTNING_CLEAR_MINUTES - (Number.isNaN(minutes) ? 0 : minutes)) * 60000;
+    note = `Lightning has been detected within ${distance.toFixed(1)} miles of ${venue.name}. Games are temporarily suspended. Teams should clear the fields and wait for further instructions from SMC staff.`;
+  } else if ((!Number.isNaN(distance) && distance <= LIGHTNING_YELLOW_MILES) || (!Number.isNaN(minutes) && minutes < LIGHTNING_CLEAR_MINUTES)) {
+    status = "yellow";
+    note = `Lightning is being monitored near ${venue.name}. Teams should stay close to updates and follow SMC staff instructions.`;
+  } else if (!Number.isNaN(minutes) && minutes >= LIGHTNING_CLEAR_MINUTES) {
+    status = "green";
+    note = `The 30-minute lightning timer has cleared for ${venue.name}. Play may resume when SMC staff, referees, and facility staff confirm fields are safe.`;
+  }
+
+  venue.status = status;
+  venue.note = note;
+  data.lastUpdated = nowStamp();
+  data.lightningAlerts.unshift({
+    id: safeUUID(),
+    venueId: venue.id,
+    venueName: venue.name,
+    distance: Number.isNaN(distance) ? null : distance,
+    minutes: Number.isNaN(minutes) ? null : minutes,
+    source,
+    status,
+    note: details ? `${note} Staff note: ${details}` : note,
+    allClearTarget,
+    autoCleared: false,
+    time: nowStamp(),
+    admin: adminLabel()
+  });
+  data.lightningAlerts = data.lightningAlerts.slice(0, 40);
+  addHistory(`${venue.name} lightning ${titleCaseStatus(status)}`, note, status);
+  addTimeline(`${venue.name} lightning alert`, `${note} Source: ${source}. ${details}`.trim());
+  saveData();
+  elements.lightningForm.reset();
+  if (status === "red" && oldStatus !== "red") playAlertTone();
+  render();
+});
+
+elements.aiUpdateForm.addEventListener("submit", event => {
+  event.preventDefault();
+  elements.aiGeneratedOutput.value = generateWeatherUpdateDraft();
+});
+
+elements.aiApplyVenueBtn.addEventListener("click", applyGeneratedUpdateToVenue);
+elements.aiApplyGlobalBtn.addEventListener("click", applyGeneratedUpdateToGlobal);
+
+elements.fieldStatusForm.addEventListener("submit", event => {
+  event.preventDefault();
+  const venue = data.venues.find(item => item.id === elements.fieldVenueSelect.value);
+  const fieldName = elements.fieldNameInput.value.trim();
+  if (!venue) return alert("Select a venue.");
+  if (!fieldName) return alert("Enter a field name or number.");
+  const status = elements.fieldStatusSelect.value;
+  const note = elements.fieldNoteInput.value.trim() || `${fieldName} is currently ${status.toLowerCase()}.`;
+  const existing = data.fieldBoard.find(item => item.venueId === venue.id && item.fieldName.toLowerCase() === fieldName.toLowerCase());
+  const record = {
+    id: existing ? existing.id : safeUUID(),
+    venueId: venue.id,
+    venueName: venue.name,
+    fieldName,
+    status,
+    note,
+    time: nowStamp(),
+    admin: adminLabel()
+  };
+  if (existing) {
+    Object.assign(existing, record);
+  } else {
+    data.fieldBoard.unshift(record);
+  }
+  data.lastUpdated = nowStamp();
+  const historyStatus = status === "Closed" ? "red" : status === "Open" ? "green" : "yellow";
+  addHistory(`${venue.name} ${fieldName} ${status}`, note, historyStatus);
+  addTimeline(`${venue.name} field status updated`, `${fieldName}: ${status}. ${note}`);
+  saveData();
+  elements.fieldStatusForm.reset();
+  render();
+});
+
+elements.clearFieldBoardBtn.addEventListener("click", () => {
+  if (!adminUnlocked) return;
+  if (!confirm("Clear field status board records from this browser?")) return;
+  data.fieldBoard = [];
+  addTimeline("Field status board cleared", `${adminLabel()} cleared field status records.`);
   saveData();
   render();
 });
@@ -697,4 +980,13 @@ elements.clearHistoryBtn.addEventListener("click", () => {
   render();
 });
 
+if (processLightningTimers()) saveData();
 render();
+setInterval(() => {
+  if (processLightningTimers()) {
+    saveData();
+    render();
+  } else {
+    renderLightningAlerts();
+  }
+}, 60000);
