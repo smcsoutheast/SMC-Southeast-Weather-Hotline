@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THE SIGNAL | Southeast Weather Hub</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">SMC Soccer Weather Hotline</p>
+      <h1>THE SIGNAL</h1>
+      <p class="subtitle">Southeast Weather Hub</p>
+      <div id="globalStatus" class="global-status green">GREEN STATUS</div>
+      <p id="lastUpdated" class="last-updated">Last updated: Not yet updated</p>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="notice-card">
+      <h2>Current Operations Note</h2>
+      <p id="globalNote">All clear. Standard operations in effect.</p>
+    </section>
+
+    <section class="controls public-controls">
+      <label for="stateFilter">Filter by region</label>
+      <select id="stateFilter">
+        <option value="all">All Southeast Venues</option>
+        <option value="Florida">Florida</option>
+        <option value="South Carolina">South Carolina</option>
+        <option value="Alabama">Alabama</option>
+        <option value="Georgia">Georgia</option>
+      </select>
+    </section>
+
+    <section id="venueGrid" class="venue-grid" aria-live="polite"></section>
+
+    <section class="info-grid">
+      <article class="panel">
+        <h2>Status Key</h2>
+        <div class="status-key">
+          <div><span class="dot green-dot"></span><strong>Green</strong><p>Normal operations. No weather threats detected.</p></div>
+          <div><span class="dot yellow-dot"></span><strong>Yellow</strong><p>Potential delays, field changes, or active monitoring.</p></div>
+          <div><span class="dot red-dot"></span><strong>Red</strong><p>Facility closed, games delayed, suspended, or cancelled.</p></div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Status History</h2>
+        <p class="muted">Last 72 hours</p>
+        <div id="historyList" class="history-list"></div>
+      </article>
+    </section>
+
+    <section class="admin-panel">
+      <h2>Admin Access</h2>
+      <div id="loginBox" class="login-box">
+        <input id="passwordInput" type="password" placeholder="Enter command center password" />
+        <button id="verifyBtn">Verify</button>
+      </div>
+
+      <div id="commandCenter" class="command-center hidden">
+        <div class="command-header">
+          <h2>Command Center</h2>
+          <button id="lockBtn" class="secondary">Lock</button>
+        </div>
+
+        <div class="admin-actions">
+          <button id="allGreenBtn">All Green</button>
+          <button id="allYellowBtn">All Yellow</button>
+          <button id="allRedBtn">All Red</button>
+          <button id="seedBtn" class="secondary">Reset Defaults</button>
+        </div>
+
+        <form id="globalForm" class="admin-form">
+          <h3>Global Update</h3>
+          <label>Overall status</label>
+          <select id="globalStatusSelect">
+            <option value="green">Green</option>
+            <option value="yellow">Yellow</option>
+            <option value="red">Red</option>
+          </select>
+          <label>Public note</label>
+          <textarea id="globalNoteInput" rows="3"></textarea>
+          <button type="submit">Save Global Update</button>
+        </form>
+
+        <form id="venueForm" class="admin-form">
+          <h3>Add New Venue</h3>
+          <label>Venue name</label>
+          <input id="newVenueName" type="text" placeholder="Example: Premier Sports Campus" />
+          <label>Region</label>
+          <select id="newVenueState">
+            <option value="Florida">Florida</option>
+            <option value="South Carolina">South Carolina</option>
+            <option value="Alabama">Alabama</option>
+            <option value="Georgia">Georgia</option>
+          </select>
+          <label>GPS or map link</label>
+          <input id="newVenueMap" type="url" placeholder="https://maps.google.com/..." />
+          <button type="submit">Add Venue</button>
+        </form>
+
+        <div id="adminVenueList" class="admin-venue-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>SMC Soccer Southeast Weather Hotline</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
