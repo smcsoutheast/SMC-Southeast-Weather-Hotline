@@ -54,6 +54,16 @@
       </article>
     </section>
 
+    <section class="panel timeline-panel">
+      <div class="panel-header">
+        <div>
+          <h2>Operations Timeline</h2>
+          <p class="muted">Live public timeline</p>
+        </div>
+      </div>
+      <div id="timelineList" class="history-list"></div>
+    </section>
+
     <section class="panel history-panel">
       <div class="panel-header">
         <div>
@@ -64,12 +74,23 @@
       </div>
       <div id="historyList" class="history-list"></div>
     </section>
+  </main>
 
+  <button id="adminShieldBtn" class="admin-shield" type="button" aria-label="Open admin access" title="Admin Access">🛡</button>
+
+  <aside id="adminDrawer" class="admin-drawer hidden" aria-label="Admin command center">
     <section class="admin-panel">
-      <h2>Admin Access</h2>
+      <div class="drawer-header">
+        <div>
+          <h2>Admin Access</h2>
+          <p id="adminSessionText" class="muted">Protected command center</p>
+        </div>
+        <button id="minimizeAdminBtn" class="icon-btn" type="button" aria-label="Minimize admin panel">×</button>
+      </div>
+
       <div id="loginBox" class="login-box">
-        <input id="passwordInput" type="password" placeholder="Enter command center password" />
-        <button id="verifyBtn">Verify</button>
+        <input id="passwordInput" type="password" placeholder="Enter command center password" autocomplete="current-password" />
+        <button id="verifyBtn" type="button">Verify</button>
       </div>
 
       <div id="commandCenter" class="command-center hidden">
@@ -90,15 +111,15 @@
             <select id="stateFilter">
               <option value="all">All Southeast Venues</option>
               <option value="Florida">Florida</option>
+              <option value="North Carolina">North Carolina</option>
               <option value="South Carolina">South Carolina</option>
               <option value="Alabama">Alabama</option>
               <option value="Georgia">Georgia</option>
-              <option value="North Carolina">North Carolina</option>
             </select>
           </div>
           <div>
             <label for="eventFilter">Command Center tournament filter</label>
-            <select id="eventFilter" multiple size="6" aria-label="Filter by tournament"></select>
+            <select id="eventFilter" multiple size="7" aria-label="Filter by tournament"></select>
             <p class="field-help">Hold Ctrl on Windows or Command on Mac to select multiple tournaments.</p>
           </div>
         </section>
@@ -141,6 +162,48 @@
           <button type="submit">Save Global Note</button>
         </form>
 
+        <form id="timelineForm" class="admin-form">
+          <h3>Add Timeline Update</h3>
+          <label for="timelineTitleInput">Title</label>
+          <input id="timelineTitleInput" type="text" placeholder="Example: Lightning delay issued" />
+          <label for="timelineBodyInput">Public timeline note</label>
+          <textarea id="timelineBodyInput" rows="3" placeholder="Enter a short public operations update."></textarea>
+          <button type="submit">Add Timeline Entry</button>
+        </form>
+
+        <form id="incidentForm" class="admin-form">
+          <h3>Incident Log</h3>
+          <label for="incidentVenueSelect">Venue</label>
+          <select id="incidentVenueSelect"></select>
+          <label for="incidentTypeSelect">Incident type</label>
+          <select id="incidentTypeSelect">
+            <option value="Weather">Weather</option>
+            <option value="Lightning">Lightning</option>
+            <option value="Field Condition">Field Condition</option>
+            <option value="Medical">Medical</option>
+            <option value="Parking">Parking</option>
+            <option value="Security">Security</option>
+            <option value="Other">Other</option>
+          </select>
+          <label for="incidentNoteInput">Private incident note</label>
+          <textarea id="incidentNoteInput" rows="4" placeholder="Document what happened, who was notified, and next steps."></textarea>
+          <label for="incidentFileInput">Upload file or photo</label>
+          <input id="incidentFileInput" type="file" multiple accept="image/*,.pdf,.txt,.doc,.docx" />
+          <p class="field-help">Files save in this browser only. Use Firebase later for shared cloud storage.</p>
+          <button type="submit">Save Incident</button>
+        </form>
+
+        <section class="admin-form">
+          <div class="panel-header compact-header">
+            <div>
+              <h3>Incident Records</h3>
+              <p class="field-help">Private operations log for staff.</p>
+            </div>
+            <button id="clearIncidentsBtn" class="secondary small-btn" type="button">Clear Incidents</button>
+          </div>
+          <div id="incidentList" class="incident-list"></div>
+        </section>
+
         <form id="venueForm" class="admin-form">
           <h3>Add New Venue</h3>
           <label for="newVenueName">Venue name</label>
@@ -148,13 +211,15 @@
           <label for="newVenueState">Region</label>
           <select id="newVenueState">
             <option value="Florida">Florida</option>
+            <option value="North Carolina">North Carolina</option>
             <option value="South Carolina">South Carolina</option>
             <option value="Alabama">Alabama</option>
             <option value="Georgia">Georgia</option>
-            <option value="North Carolina">North Carolina</option>
           </select>
           <label for="newVenueEvents">Tournaments</label>
           <select id="newVenueEvents" multiple size="8"></select>
+          <label for="newVenueAddress">Venue address or details</label>
+          <input id="newVenueAddress" type="text" placeholder="Street address, city, state" />
           <label for="newVenueMap">GPS or map link</label>
           <input id="newVenueMap" type="url" placeholder="https://maps.google.com/..." />
           <button type="submit">Add Venue</button>
@@ -163,7 +228,7 @@
         <div id="adminVenueList" class="admin-venue-list"></div>
       </div>
     </section>
-  </main>
+  </aside>
 
   <footer class="footer">
     <p>Soccer Management Company Southeast Weather Hotline</p>

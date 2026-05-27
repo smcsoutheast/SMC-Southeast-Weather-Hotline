@@ -1,5 +1,16 @@
-const ADMIN_PASSWORD = "southeast2026";
-const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase2";
+const ADMIN_USERS = [
+  { name: "Justin", role: "Tournament Director", password: "justin2026$" },
+  { name: "Ashley", role: "Tournament Operations", password: "ashley2026$" }
+];
+
+const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase2Full";
+const LEGACY_KEYS = [
+  "smcSoutheastWeatherHotlinePhase2",
+  "smcSoutheastWeatherHotlinePhase1",
+  "smcSoutheastWeatherHotline"
+];
+
+const regions = ["Florida", "North Carolina", "South Carolina", "Alabama", "Georgia"];
 
 const tournamentOptions = [
   "Carolina Patriots Cup (NC)",
@@ -33,49 +44,87 @@ const defaultData = {
   showCurrentOnly: false,
   currentTournaments: [],
   venues: [
-    { id: safeUUID(), name: "Premier Sports Campus", state: "Florida", events: ["Florida Extreme Cup (FL)"], status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Wiregrass Ranch Sports Campus", state: "Florida", events: ["Gulf Coast Invitational (FL)"], status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Wesley Chapel District Park", state: "Florida", events: ["Gulf Coast Invitational (FL)"], status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Florence Soccer Complex", state: "South Carolina", events: ["Florence Cup (SC)"], status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Jack Allen Recreation Complex", state: "Alabama", events: ["Alabama Super Cup (AL)"], status: "green", note: "Normal operations.", map: "" }
+    createVenue("Premier Sports Campus", "Florida", ["Florida Extreme Cup (FL)"], "", "5895 Post Blvd, Lakewood Ranch, FL", "Main athletic trainer tent near tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Follow facility parking signs"),
+    createVenue("Wiregrass Ranch Sports Campus", "Florida", ["Gulf Coast Invitational (FL)"], "", "3021 Sports Coast Way, Wesley Chapel, FL", "Athletic trainer station at tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas"),
+    createVenue("Wesley Chapel District Park", "Florida", ["Gulf Coast Invitational (FL)"], "", "7727 Boyette Rd, Wesley Chapel, FL", "Athletic trainer station near field operations", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas"),
+    createVenue("Florence Soccer Complex", "South Carolina", ["Florence Cup (SC)"], "", "3701 W Palmetto St, Florence, SC", "Athletic trainer station near tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas"),
+    createVenue("Jack Allen Recreation Complex", "Alabama", ["Alabama Super Cup (AL)", "Alabama President's Day Invitational (AL)"], "", "2616 Modaus Rd SW, Decatur, AL", "Athletic trainer station near tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas"),
+    createVenue("Carolina Patriots Cup Venue", "North Carolina", ["Carolina Patriots Cup (NC)"], "", "North Carolina", "Athletic trainer station near tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas")
   ],
-  history: []
+  history: [],
+  timeline: [],
+  incidents: []
 };
 
 let data = loadData();
 let adminUnlocked = false;
+let currentAdmin = null;
 
-const globalStatus = document.getElementById("globalStatus");
-const stickyStatus = document.getElementById("stickyStatus");
-const stickyStatusText = document.getElementById("stickyStatusText");
-const stickyUpdateText = document.getElementById("stickyUpdateText");
-const lastUpdated = document.getElementById("lastUpdated");
-const globalNote = document.getElementById("globalNote");
-const venueGrid = document.getElementById("venueGrid");
-const historyList = document.getElementById("historyList");
-const stateFilter = document.getElementById("stateFilter");
-const eventFilter = document.getElementById("eventFilter");
-const passwordInput = document.getElementById("passwordInput");
-const verifyBtn = document.getElementById("verifyBtn");
-const loginBox = document.getElementById("loginBox");
-const commandCenter = document.getElementById("commandCenter");
-const lockBtn = document.getElementById("lockBtn");
-const fullScreenBtn = document.getElementById("fullScreenBtn");
-const refreshBtn = document.getElementById("refreshBtn");
-const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-const globalForm = document.getElementById("globalForm");
-const globalTemplateSelect = document.getElementById("globalTemplateSelect");
-const globalNoteInput = document.getElementById("globalNoteInput");
-const venueForm = document.getElementById("venueForm");
-const adminVenueList = document.getElementById("adminVenueList");
-const newVenueEvents = document.getElementById("newVenueEvents");
-const publicViewForm = document.getElementById("publicViewForm");
-const showCurrentOnly = document.getElementById("showCurrentOnly");
-const currentTournamentSelect = document.getElementById("currentTournamentSelect");
+const elements = {
+  globalStatus: document.getElementById("globalStatus"),
+  stickyStatus: document.getElementById("stickyStatus"),
+  stickyStatusText: document.getElementById("stickyStatusText"),
+  stickyUpdateText: document.getElementById("stickyUpdateText"),
+  lastUpdated: document.getElementById("lastUpdated"),
+  globalNote: document.getElementById("globalNote"),
+  venueGrid: document.getElementById("venueGrid"),
+  timelineList: document.getElementById("timelineList"),
+  historyList: document.getElementById("historyList"),
+  stateFilter: document.getElementById("stateFilter"),
+  eventFilter: document.getElementById("eventFilter"),
+  passwordInput: document.getElementById("passwordInput"),
+  verifyBtn: document.getElementById("verifyBtn"),
+  loginBox: document.getElementById("loginBox"),
+  commandCenter: document.getElementById("commandCenter"),
+  lockBtn: document.getElementById("lockBtn"),
+  fullScreenBtn: document.getElementById("fullScreenBtn"),
+  refreshBtn: document.getElementById("refreshBtn"),
+  clearHistoryBtn: document.getElementById("clearHistoryBtn"),
+  globalForm: document.getElementById("globalForm"),
+  globalTemplateSelect: document.getElementById("globalTemplateSelect"),
+  globalNoteInput: document.getElementById("globalNoteInput"),
+  venueForm: document.getElementById("venueForm"),
+  adminVenueList: document.getElementById("adminVenueList"),
+  newVenueEvents: document.getElementById("newVenueEvents"),
+  publicViewForm: document.getElementById("publicViewForm"),
+  showCurrentOnly: document.getElementById("showCurrentOnly"),
+  currentTournamentSelect: document.getElementById("currentTournamentSelect"),
+  adminShieldBtn: document.getElementById("adminShieldBtn"),
+  adminDrawer: document.getElementById("adminDrawer"),
+  minimizeAdminBtn: document.getElementById("minimizeAdminBtn"),
+  adminSessionText: document.getElementById("adminSessionText"),
+  timelineForm: document.getElementById("timelineForm"),
+  timelineTitleInput: document.getElementById("timelineTitleInput"),
+  timelineBodyInput: document.getElementById("timelineBodyInput"),
+  incidentForm: document.getElementById("incidentForm"),
+  incidentVenueSelect: document.getElementById("incidentVenueSelect"),
+  incidentTypeSelect: document.getElementById("incidentTypeSelect"),
+  incidentNoteInput: document.getElementById("incidentNoteInput"),
+  incidentFileInput: document.getElementById("incidentFileInput"),
+  incidentList: document.getElementById("incidentList"),
+  clearIncidentsBtn: document.getElementById("clearIncidentsBtn")
+};
 
 function safeUUID() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
   return `id-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function createVenue(name, state, events, map = "", address = "", medical = "", shelter = "", parking = "") {
+  return {
+    id: safeUUID(),
+    name,
+    state,
+    events,
+    status: "green",
+    note: "Normal operations.",
+    map,
+    address,
+    medical,
+    shelter,
+    parking,
+    fieldCondition: "Open"
+  };
 }
 
 function clone(value) {
@@ -83,7 +132,7 @@ function clone(value) {
 }
 
 function loadData() {
-  const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("smcSoutheastWeatherHotlinePhase1");
+  const saved = localStorage.getItem(STORAGE_KEY) || LEGACY_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
   if (!saved) return clone(defaultData);
   try {
     return migrateData(JSON.parse(saved));
@@ -112,19 +161,26 @@ function normalizeEvents(venue) {
 function migrateData(saved) {
   const merged = { ...clone(defaultData), ...saved };
   merged.venues = (saved.venues || defaultData.venues).map(venue => ({
-    map: "",
-    note: "Normal operations.",
-    status: "green",
-    name: "Unnamed Venue",
-    state: "Florida",
-    ...venue,
     id: venue.id || safeUUID(),
-    events: normalizeEvents(venue)
+    name: venue.name || "Unnamed Venue",
+    state: regions.includes(venue.state) ? venue.state : "Florida",
+    events: normalizeEvents(venue),
+    status: ["green", "yellow", "red"].includes(venue.status) ? venue.status : "green",
+    note: venue.note || "Normal operations.",
+    map: venue.map || "",
+    address: venue.address || "",
+    medical: venue.medical || "",
+    shelter: venue.shelter || "",
+    parking: venue.parking || "",
+    fieldCondition: venue.fieldCondition || "Open"
   }));
   merged.currentTournaments = (saved.currentTournaments || []).filter(event => tournamentOptions.includes(event));
   merged.showCurrentOnly = Boolean(saved.showCurrentOnly);
-  merged.history = saved.history || [];
+  merged.history = Array.isArray(saved.history) ? saved.history : [];
+  merged.timeline = Array.isArray(saved.timeline) ? saved.timeline : [];
+  merged.incidents = Array.isArray(saved.incidents) ? saved.incidents : [];
   merged.globalStatus = calculateGlobalStatus(merged.venues);
+  merged.globalNote = saved.globalNote || templates.allClear;
   return merged;
 }
 
@@ -138,9 +194,15 @@ function nowStamp() {
     weekday: "short",
     month: "short",
     day: "numeric",
+    year: "numeric",
     hour: "numeric",
     minute: "2-digit"
   });
+}
+
+function adminLabel() {
+  if (!currentAdmin) return "System";
+  return `${currentAdmin.name}, ${currentAdmin.role}`;
 }
 
 function titleCaseStatus(status) {
@@ -154,8 +216,13 @@ function calculateGlobalStatus(venues) {
 }
 
 function addHistory(title, note) {
-  data.history.unshift({ title, note, time: nowStamp() });
+  data.history.unshift({ title, note, time: nowStamp(), admin: adminLabel() });
   data.history = data.history.slice(0, 75);
+}
+
+function addTimeline(title, note) {
+  data.timeline.unshift({ title, note, time: nowStamp(), admin: adminLabel() });
+  data.timeline = data.timeline.slice(0, 75);
 }
 
 function playAlertTone() {
@@ -199,44 +266,34 @@ function updateTournamentSelect(selectElement, includeAll = false, selectedValue
   }
 }
 
+function updateIncidentVenueSelect() {
+  elements.incidentVenueSelect.innerHTML = data.venues.map(venue => `<option value="${escapeAttr(venue.id)}">${escapeHtml(venue.name)}</option>`).join("");
+}
+
 function render() {
   data.globalStatus = calculateGlobalStatus(data.venues);
-  updateTournamentSelect(eventFilter, true);
-  updateTournamentSelect(newVenueEvents, false);
-  updateTournamentSelect(currentTournamentSelect, false, data.currentTournaments);
-  showCurrentOnly.checked = data.showCurrentOnly;
+  updateTournamentSelect(elements.eventFilter, true);
+  updateTournamentSelect(elements.newVenueEvents, false);
+  updateTournamentSelect(elements.currentTournamentSelect, false, data.currentTournaments);
+  updateIncidentVenueSelect();
 
+  elements.showCurrentOnly.checked = data.showCurrentOnly;
   const statusText = `${data.globalStatus.toUpperCase()} STATUS`;
-  globalStatus.className = `global-status ${data.globalStatus}`;
-  globalStatus.textContent = statusText;
-  stickyStatus.className = `sticky-status ${data.globalStatus}`;
-  stickyStatusText.textContent = statusText;
-  stickyUpdateText.textContent = data.lastUpdated ? `Last updated: ${data.lastUpdated}` : "Last updated: Not yet updated";
-  globalNote.textContent = data.globalNote;
-  lastUpdated.textContent = data.lastUpdated ? `Last updated: ${data.lastUpdated}` : "Last updated: Not yet updated";
+  elements.globalStatus.className = `global-status ${data.globalStatus}`;
+  elements.globalStatus.textContent = statusText;
+  elements.stickyStatus.className = `sticky-status ${data.globalStatus}`;
+  elements.stickyStatusText.textContent = statusText;
+  elements.stickyUpdateText.textContent = data.lastUpdated ? `Last updated: ${data.lastUpdated}` : "Last updated: Not yet updated";
+  elements.globalNote.textContent = data.globalNote;
+  elements.globalNoteInput.value = data.globalNote;
+  elements.lastUpdated.textContent = data.lastUpdated ? `Last updated: ${data.lastUpdated}` : "Last updated: Not yet updated";
 
-  const venues = getPublicVenues();
-  venueGrid.innerHTML = venues.length ? venues.map(venue => `
-    <article class="venue-card ${venue.status}-card">
-      <h2>${escapeHtml(venue.name)}</h2>
-      <p class="venue-meta">${escapeHtml(venue.state)} | ${escapeHtml(venue.events.join(", "))}</p>
-      <div class="global-status ${venue.status}">${venue.status.toUpperCase()}</div>
-      <p class="venue-note">${escapeHtml(venue.note || "No current note.")}</p>
-      ${venue.map ? `<a class="map-link" href="${escapeAttr(venue.map)}" target="_blank" rel="noopener">Open Map</a>` : ""}
-    </article>
-  `).join("") : `<article class="venue-card"><h2>No venues are currently posted</h2><p class="venue-note">Please check back for tournament updates.</p></article>`;
-
-  const activeHistory = data.history.filter(item => within72Hours(item.time)).slice(0, 50);
-  historyList.innerHTML = activeHistory.length ? activeHistory.map(item => `
-    <div class="history-item">
-      <strong>${escapeHtml(item.title)}</strong>
-      <p>${escapeHtml(item.note)}</p>
-      <span>${escapeHtml(item.time)}</span>
-    </div>
-  `).join("") : `<p class="muted">No updates posted yet.</p>`;
-
-  globalNoteInput.value = data.globalNote;
+  renderPublicVenues();
+  renderTimeline();
+  renderHistory();
   renderAdminVenues();
+  renderIncidents();
+  updateSessionText();
 }
 
 function getPublicVenues() {
@@ -245,8 +302,8 @@ function getPublicVenues() {
 }
 
 function getCommandVenues() {
-  const selectedState = stateFilter.value;
-  const selectedEvents = getSelectedValues(eventFilter);
+  const selectedState = elements.stateFilter.value;
+  const selectedEvents = getSelectedValues(elements.eventFilter);
   const showAllEvents = !selectedEvents.length || selectedEvents.includes("all");
   return data.venues.filter(venue => {
     const regionMatch = selectedState === "all" || venue.state === selectedState;
@@ -255,31 +312,65 @@ function getCommandVenues() {
   });
 }
 
-function within72Hours(timeText) {
-  const parsed = Date.parse(timeText);
-  if (Number.isNaN(parsed)) return true;
-  return Date.now() - parsed <= 72 * 60 * 60 * 1000;
+function renderPublicVenues() {
+  const venues = getPublicVenues();
+  elements.venueGrid.innerHTML = venues.length ? venues.map(venue => `
+    <article class="venue-card ${venue.status}-card">
+      <h2>${escapeHtml(venue.name)}</h2>
+      <p class="venue-meta">${escapeHtml(venue.state)} | ${escapeHtml(venue.events.join(", "))}</p>
+      <div class="global-status ${venue.status}">${venue.status.toUpperCase()}</div>
+      <p class="venue-note">${escapeHtml(venue.note || "No current note.")}</p>
+      <ul class="detail-list">
+        ${venue.fieldCondition ? `<li><strong>Field condition:</strong> ${escapeHtml(venue.fieldCondition)}</li>` : ""}
+        ${venue.address ? `<li><strong>Venue details:</strong> ${escapeHtml(venue.address)}</li>` : ""}
+        ${venue.medical ? `<li><strong>Medical:</strong> ${escapeHtml(venue.medical)}</li>` : ""}
+        ${venue.shelter ? `<li><strong>Shelter:</strong> ${escapeHtml(venue.shelter)}</li>` : ""}
+        ${venue.parking ? `<li><strong>Parking:</strong> ${escapeHtml(venue.parking)}</li>` : ""}
+      </ul>
+      ${venue.map ? `<p><a class="map-link" href="${escapeAttr(venue.map)}" target="_blank" rel="noopener">Open Map</a></p>` : ""}
+    </article>
+  `).join("") : `<article class="venue-card"><h2>No current public venues</h2><p class="muted">The command center is set to show current tournaments only, but no venue matches the selected tournaments.</p></article>`;
+}
+
+function renderTimeline() {
+  elements.timelineList.innerHTML = data.timeline.length ? data.timeline.slice(0, 12).map(item => `
+    <div class="history-item">
+      <strong>${escapeHtml(item.title)}</strong>
+      <span>${escapeHtml(item.time || "Time not recorded")}</span>
+      <p>${escapeHtml(item.note || "No details provided.")}</p>
+    </div>
+  `).join("") : `<p class="muted">No timeline updates yet.</p>`;
+}
+
+function renderHistory() {
+  elements.historyList.innerHTML = data.history.length ? data.history.slice(0, 18).map(item => `
+    <div class="history-item">
+      <strong>${escapeHtml(item.title)}</strong>
+      <span>${escapeHtml(item.time || "Time not recorded")} | ${escapeHtml(item.admin || "System")}</span>
+      <p>${escapeHtml(item.note || "No details provided.")}</p>
+    </div>
+  `).join("") : `<p class="muted">No status updates have been posted yet.</p>`;
 }
 
 function renderAdminVenues() {
   const venues = getCommandVenues();
-  adminVenueList.innerHTML = venues.length ? venues.map(venue => `
+  elements.adminVenueList.innerHTML = venues.length ? venues.map(venue => `
     <div class="admin-venue-card ${venue.status}-admin-card">
       <h3>${escapeHtml(venue.name)}</h3>
       <label>Venue name</label>
-      <input type="text" data-action="name" data-id="${venue.id}" value="${escapeAttr(venue.name)}" />
+      <input type="text" data-action="name" data-id="${escapeAttr(venue.id)}" value="${escapeAttr(venue.name)}" />
       <label>Region</label>
-      <select data-action="state" data-id="${venue.id}">
-        ${["Florida", "South Carolina", "Alabama", "Georgia", "North Carolina"].map(state => `<option value="${escapeAttr(state)}" ${venue.state === state ? "selected" : ""}>${escapeHtml(state)}</option>`).join("")}
+      <select data-action="state" data-id="${escapeAttr(venue.id)}">
+        ${regions.map(state => `<option value="${escapeAttr(state)}" ${venue.state === state ? "selected" : ""}>${escapeHtml(state)}</option>`).join("")}
       </select>
       <label>Status</label>
-      <select data-action="status" data-id="${venue.id}">
+      <select data-action="status" data-id="${escapeAttr(venue.id)}">
         <option value="green" ${venue.status === "green" ? "selected" : ""}>Green</option>
         <option value="yellow" ${venue.status === "yellow" ? "selected" : ""}>Yellow</option>
         <option value="red" ${venue.status === "red" ? "selected" : ""}>Red</option>
       </select>
       <label>Template</label>
-      <select data-action="template" data-id="${venue.id}">
+      <select data-action="template" data-id="${escapeAttr(venue.id)}">
         <option value="">Select a template</option>
         <option value="allClear">All clear</option>
         <option value="monitoring">Weather monitoring</option>
@@ -289,104 +380,218 @@ function renderAdminVenues() {
         <option value="resumePlay">Resume play</option>
       </select>
       <label>Public note</label>
-      <textarea rows="3" data-action="note" data-id="${venue.id}">${escapeHtml(venue.note || "")}</textarea>
+      <textarea rows="3" data-action="note" data-id="${escapeAttr(venue.id)}">${escapeHtml(venue.note || "")}</textarea>
       <label>Tournaments</label>
-      <select multiple size="8" data-action="events" data-id="${venue.id}">
+      <select multiple size="8" data-action="events" data-id="${escapeAttr(venue.id)}">
         ${tournamentOptions.map(event => `<option value="${escapeAttr(event)}" ${venue.events.includes(event) ? "selected" : ""}>${escapeHtml(event)}</option>`).join("")}
       </select>
+      <label>Venue address or details</label>
+      <input type="text" data-action="address" data-id="${escapeAttr(venue.id)}" value="${escapeAttr(venue.address || "")}" />
+      <label>Field condition</label>
+      <input type="text" data-action="fieldCondition" data-id="${escapeAttr(venue.id)}" value="${escapeAttr(venue.fieldCondition || "")}" />
+      <label>Medical location</label>
+      <input type="text" data-action="medical" data-id="${escapeAttr(venue.id)}" value="${escapeAttr(venue.medical || "")}" />
+      <label>Shelter instructions</label>
+      <input type="text" data-action="shelter" data-id="${escapeAttr(venue.id)}" value="${escapeAttr(venue.shelter || "")}" />
+      <label>Parking details</label>
+      <input type="text" data-action="parking" data-id="${escapeAttr(venue.id)}" value="${escapeAttr(venue.parking || "")}" />
       <label>Map link</label>
-      <input type="url" data-action="map" data-id="${venue.id}" value="${escapeAttr(venue.map || "")}" />
+      <input type="url" data-action="map" data-id="${escapeAttr(venue.id)}" value="${escapeAttr(venue.map || "")}" />
       <div class="admin-actions">
-        <button data-action="saveVenue" data-id="${venue.id}" type="button">Save Venue</button>
-        <button class="secondary" data-action="deleteVenue" data-id="${venue.id}" type="button">Delete</button>
+        <button data-action="saveVenue" data-id="${escapeAttr(venue.id)}" type="button">Save Venue</button>
+        <button class="secondary" data-action="deleteVenue" data-id="${escapeAttr(venue.id)}" type="button">Delete</button>
       </div>
     </div>
   `).join("") : `<p class="muted">No venues match the command center filters.</p>`;
 }
 
-function unlockAdmin() {
+function renderIncidents() {
+  elements.incidentList.innerHTML = data.incidents.length ? data.incidents.map(incident => `
+    <div class="incident-item">
+      <strong>${escapeHtml(incident.type)} | ${escapeHtml(incident.venueName)}</strong>
+      <span>${escapeHtml(incident.time)} | ${escapeHtml(incident.admin || "System")}</span>
+      <p>${escapeHtml(incident.note || "No note entered.")}</p>
+      ${incident.files && incident.files.length ? `<ul class="file-list">${incident.files.map(file => `<li><a class="file-link" href="${escapeAttr(file.dataUrl)}" download="${escapeAttr(file.name)}">${escapeHtml(file.name)}</a> <span>(${escapeHtml(formatBytes(file.size))})</span></li>`).join("")}</ul>` : ""}
+    </div>
+  `).join("") : `<p class="muted">No incidents recorded yet.</p>`;
+}
+
+function updateSessionText() {
+  elements.adminSessionText.textContent = currentAdmin ? `${currentAdmin.name} | ${currentAdmin.role}` : "Protected command center";
+}
+
+function unlockAdmin(user) {
+  currentAdmin = user;
   adminUnlocked = true;
-  loginBox.classList.add("hidden");
-  commandCenter.classList.remove("hidden");
+  elements.loginBox.classList.add("hidden");
+  elements.commandCenter.classList.remove("hidden");
   document.querySelectorAll(".admin-only").forEach(item => item.classList.remove("hidden"));
+  addHistory("Admin session opened", `${adminLabel()} unlocked the command center.`);
+  saveData();
+  render();
 }
 
 function lockAdmin() {
   adminUnlocked = false;
-  commandCenter.classList.add("hidden");
-  loginBox.classList.remove("hidden");
-  passwordInput.value = "";
+  currentAdmin = null;
+  elements.commandCenter.classList.add("hidden");
+  elements.loginBox.classList.remove("hidden");
+  elements.passwordInput.value = "";
   document.body.classList.remove("command-mode");
+  elements.fullScreenBtn.textContent = "Full Screen";
   document.querySelectorAll(".admin-only").forEach(item => item.classList.add("hidden"));
+  render();
 }
 
-verifyBtn.addEventListener("click", () => {
-  if (passwordInput.value === ADMIN_PASSWORD) unlockAdmin();
-  else alert("Incorrect password.");
+function openAdminDrawer() {
+  elements.adminDrawer.classList.remove("hidden");
+  setTimeout(() => elements.passwordInput.focus(), 50);
+}
+
+function minimizeAdminDrawer() {
+  elements.adminDrawer.classList.add("hidden");
+  document.body.classList.remove("command-mode");
+  elements.fullScreenBtn.textContent = "Full Screen";
+}
+
+function verifyPassword() {
+  const password = elements.passwordInput.value;
+  const user = ADMIN_USERS.find(admin => admin.password === password);
+  if (!user) {
+    alert("Incorrect password.");
+    return;
+  }
+  unlockAdmin({ name: user.name, role: user.role });
+}
+
+async function filesToDataUrls(fileList) {
+  const files = Array.from(fileList || []);
+  return Promise.all(files.map(file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({ name: file.name, type: file.type, size: file.size, dataUrl: reader.result });
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  })));
+}
+
+function setAllStatuses(status) {
+  const oldStatus = data.globalStatus;
+  data.venues = data.venues.map(venue => ({ ...venue, status }));
+  data.lastUpdated = nowStamp();
+  data.globalNote = status === "green" ? templates.allClear : status === "yellow" ? templates.monitoring : templates.lightningDelay;
+  addHistory(`All venues changed to ${titleCaseStatus(status)}`, data.globalNote);
+  addTimeline(`All venues ${titleCaseStatus(status)}`, data.globalNote);
+  saveData();
+  if (status === "red" && oldStatus !== "red") playAlertTone();
+  render();
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return "0 KB";
+  const units = ["B", "KB", "MB"];
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value = value / 1024;
+    unitIndex += 1;
+  }
+  return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '"': "&quot;"
+  }[char]));
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value);
+}
+
+elements.adminShieldBtn.addEventListener("click", openAdminDrawer);
+elements.minimizeAdminBtn.addEventListener("click", minimizeAdminDrawer);
+elements.verifyBtn.addEventListener("click", verifyPassword);
+elements.passwordInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") verifyPassword();
 });
+elements.lockBtn.addEventListener("click", lockAdmin);
+elements.stateFilter.addEventListener("change", render);
+elements.eventFilter.addEventListener("change", render);
+elements.refreshBtn.addEventListener("click", render);
 
-passwordInput.addEventListener("keydown", event => {
-  if (event.key === "Enter") verifyBtn.click();
-});
-
-lockBtn.addEventListener("click", lockAdmin);
-stateFilter.addEventListener("change", render);
-eventFilter.addEventListener("change", render);
-refreshBtn.addEventListener("click", render);
-
-fullScreenBtn.addEventListener("click", () => {
+elements.fullScreenBtn.addEventListener("click", () => {
   document.body.classList.toggle("command-mode");
-  fullScreenBtn.textContent = document.body.classList.contains("command-mode") ? "Exit Full Screen" : "Full Screen";
+  elements.fullScreenBtn.textContent = document.body.classList.contains("command-mode") ? "Exit Full Screen" : "Full Screen";
 });
 
-globalTemplateSelect.addEventListener("change", () => {
-  const value = globalTemplateSelect.value;
-  if (value && templates[value]) globalNoteInput.value = templates[value];
+elements.globalTemplateSelect.addEventListener("change", () => {
+  const value = elements.globalTemplateSelect.value;
+  if (value && templates[value]) elements.globalNoteInput.value = templates[value];
 });
 
-globalForm.addEventListener("submit", event => {
+elements.globalForm.addEventListener("submit", event => {
   event.preventDefault();
-  data.globalNote = globalNoteInput.value.trim() || "No current note.";
+  data.globalNote = elements.globalNoteInput.value.trim() || "No current note.";
   data.lastUpdated = nowStamp();
   addHistory("Global note updated", data.globalNote);
+  addTimeline("Global note updated", data.globalNote);
   saveData();
   render();
 });
 
-publicViewForm.addEventListener("submit", event => {
+elements.timelineForm.addEventListener("submit", event => {
   event.preventDefault();
-  data.showCurrentOnly = showCurrentOnly.checked;
-  data.currentTournaments = getSelectedValues(currentTournamentSelect).filter(value => tournamentOptions.includes(value));
+  const title = elements.timelineTitleInput.value.trim() || "Operations update";
+  const note = elements.timelineBodyInput.value.trim();
+  if (!note) return alert("Enter a timeline note.");
   data.lastUpdated = nowStamp();
-  addHistory("Public tournament view updated", data.showCurrentOnly ? `Showing current tournaments: ${data.currentTournaments.join(", ") || "None selected"}` : "Showing all venue tournaments.");
+  addTimeline(title, note);
+  addHistory(title, note);
+  saveData();
+  elements.timelineForm.reset();
+  render();
+});
+
+elements.publicViewForm.addEventListener("submit", event => {
+  event.preventDefault();
+  data.showCurrentOnly = elements.showCurrentOnly.checked;
+  data.currentTournaments = getSelectedValues(elements.currentTournamentSelect).filter(value => tournamentOptions.includes(value));
+  data.lastUpdated = nowStamp();
+  const note = data.showCurrentOnly ? `Showing current tournaments: ${data.currentTournaments.join(", ") || "None selected"}` : "Showing all venue tournaments.";
+  addHistory("Public tournament view updated", note);
   saveData();
   render();
 });
 
-venueForm.addEventListener("submit", event => {
+elements.venueForm.addEventListener("submit", event => {
   event.preventDefault();
   const name = document.getElementById("newVenueName").value.trim();
   const state = document.getElementById("newVenueState").value;
-  const events = getSelectedValues(newVenueEvents).filter(value => tournamentOptions.includes(value));
+  const events = getSelectedValues(elements.newVenueEvents).filter(value => tournamentOptions.includes(value));
+  const address = document.getElementById("newVenueAddress").value.trim();
   const map = document.getElementById("newVenueMap").value.trim();
   if (!name) return alert("Enter a venue name.");
   if (!events.length) return alert("Select at least one tournament.");
-  data.venues.push({ id: safeUUID(), name, state, events, status: "green", note: "Normal operations.", map });
+  data.venues.push(createVenue(name, state, events, map, address));
   data.lastUpdated = nowStamp();
   addHistory(`Venue added: ${name}`, "Venue added to the Southeast hotline.");
   saveData();
-  venueForm.reset();
+  elements.venueForm.reset();
   render();
 });
 
-adminVenueList.addEventListener("change", event => {
+elements.adminVenueList.addEventListener("change", event => {
   if (event.target.dataset.action !== "template") return;
   const card = event.target.closest(".admin-venue-card");
   const template = templates[event.target.value];
   if (template) card.querySelector('[data-action="note"]').value = template;
 });
 
-adminVenueList.addEventListener("click", event => {
+elements.adminVenueList.addEventListener("click", event => {
   if (event.target.tagName !== "BUTTON") return;
   event.preventDefault();
   const id = event.target.dataset.id;
@@ -411,12 +616,52 @@ adminVenueList.addEventListener("click", event => {
     venue.note = card.querySelector('[data-action="note"]').value.trim() || "No current note.";
     venue.events = getSelectedValues(card.querySelector('[data-action="events"]')).filter(value => tournamentOptions.includes(value));
     if (!venue.events.length) venue.events = [tournamentOptions[0]];
+    venue.address = card.querySelector('[data-action="address"]').value.trim();
+    venue.fieldCondition = card.querySelector('[data-action="fieldCondition"]').value.trim();
+    venue.medical = card.querySelector('[data-action="medical"]').value.trim();
+    venue.shelter = card.querySelector('[data-action="shelter"]').value.trim();
+    venue.parking = card.querySelector('[data-action="parking"]').value.trim();
     venue.map = card.querySelector('[data-action="map"]').value.trim();
     data.lastUpdated = nowStamp();
-    addHistory(`${venue.name} saved`, `${oldName !== venue.name ? `Renamed from ${oldName}. ` : ""}Status: ${titleCaseStatus(venue.status)}. ${venue.note}`);
+    const note = `${oldName !== venue.name ? `Renamed from ${oldName}. ` : ""}Status: ${titleCaseStatus(venue.status)}. ${venue.note}`;
+    addHistory(`${venue.name} saved`, note);
+    addTimeline(`${venue.name} ${titleCaseStatus(venue.status)}`, venue.note);
     if (venue.status === "red" && oldStatus !== "red") playAlertTone();
   }
 
+  saveData();
+  render();
+});
+
+elements.incidentForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  const venue = data.venues.find(item => item.id === elements.incidentVenueSelect.value);
+  const note = elements.incidentNoteInput.value.trim();
+  if (!venue) return alert("Select a venue.");
+  if (!note) return alert("Enter an incident note.");
+  const files = await filesToDataUrls(elements.incidentFileInput.files);
+  data.incidents.unshift({
+    id: safeUUID(),
+    venueId: venue.id,
+    venueName: venue.name,
+    type: elements.incidentTypeSelect.value,
+    note,
+    files,
+    time: nowStamp(),
+    admin: adminLabel()
+  });
+  data.incidents = data.incidents.slice(0, 75);
+  addHistory(`Incident logged: ${venue.name}`, `${elements.incidentTypeSelect.value} incident logged by ${adminLabel()}.`);
+  saveData();
+  elements.incidentForm.reset();
+  render();
+});
+
+elements.clearIncidentsBtn.addEventListener("click", () => {
+  if (!adminUnlocked) return;
+  if (!confirm("Clear incident records from this browser?")) return;
+  data.incidents = [];
+  addHistory("Incident records cleared", `${adminLabel()} cleared incident records.`);
   saveData();
   render();
 });
@@ -433,37 +678,12 @@ document.getElementById("seedBtn").addEventListener("click", () => {
   render();
 });
 
-clearHistoryBtn.addEventListener("click", () => {
+elements.clearHistoryBtn.addEventListener("click", () => {
   if (!adminUnlocked) return;
   if (!confirm("Clear status history?")) return;
   data.history = [];
   saveData();
   render();
 });
-
-function setAllStatuses(status) {
-  const oldStatus = data.globalStatus;
-  data.venues = data.venues.map(venue => ({ ...venue, status }));
-  data.lastUpdated = nowStamp();
-  data.globalNote = status === "green" ? templates.allClear : status === "yellow" ? templates.monitoring : templates.lightningDelay;
-  addHistory(`All venues changed to ${titleCaseStatus(status)}`, data.globalNote);
-  saveData();
-  if (status === "red" && oldStatus !== "red") playAlertTone();
-  render();
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "'": "&#39;",
-    '"': "&quot;"
-  }[char]));
-}
-
-function escapeAttr(value) {
-  return escapeHtml(value);
-}
 
 render();
