@@ -3,15 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Soccer Management Company | Southeast Weather Hub</title>
+  <meta name="theme-color" content="#071a33" />
+  <title>THE SIGNAL | Southeast Weather Hub</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="stickyStatus" class="sticky-status green">
+    <span id="stickyStatusText">GREEN STATUS</span>
+    <span id="stickyUpdateText">Last updated: Not yet updated</span>
+  </div>
+
   <header class="hero">
     <div class="hero-inner">
-      <p class="eyebrow">Soccer Management Company</p>
-      <h1>WEATHER UPDATES</h1>
-      <p class="subtitle">Southeast Regional Hub</p>
+      <p class="eyebrow">SMC Soccer Weather Hotline</p>
+      <h1>THE SIGNAL</h1>
+      <p class="subtitle">Southeast Weather Hub</p>
       <div id="globalStatus" class="global-status green">GREEN STATUS</div>
       <p id="lastUpdated" class="last-updated">Last updated: Not yet updated</p>
     </div>
@@ -19,28 +25,30 @@
 
   <main class="page-shell">
     <section class="notice-card">
-      <h2>Current Operations Note</h2>
-      <p id="globalNote">All clear. Standard operations in effect.</p>
+      <div>
+        <h2>Current Operations Note</h2>
+        <p id="globalNote">All clear. Standard operations in effect.</p>
+      </div>
+      <button id="refreshBtn" class="secondary small-btn" type="button">Refresh</button>
     </section>
 
     <section class="controls public-controls">
-      <label for="tournamentFilter">Filter by tournamnet</label>
-      <select id="tournamentFilter">
-        <option value="all">All Southeast Tournaments</option>
-        <option value="Carolina Patriots Cup (NC)">Carolina Patriots Cup (NC)</option>
-        <option value="Florida Extreme Cup (FL)">Florida Extreme Cup (FL)</option>
-        <option value="Florence Cup (SC)">Florence Cup (SC)</option>
-        <option value="Palm Beach Gardens Classic Fall (FL)">Palm Beach Gardens Classic Fall (FL)</option>
-        <option value="Alabama Super Cup (AL)">Alabama Super Cup (AL)</option>
-        <option value="Florida Winter Cup Juniors (FL)">Florida Winter Cup Juniors (FL)</option>
-        <option value="Florida Winter Cup and Showcase (FL)">Florida Winter Cup & Showcase (FL)</option>
-        <option value="Gulf Coast Invitational (FL)">Gulf Coast Invitational (FL)</option>
-        <option value="Alabama President's Day Invitational (AL)">Alabama President's Day Invitational (AL)</option>
-        <option value="Palm Beach Gardens Classic Spring (FL)">Palm Beach Gardens Classic Spring (FL)</option>
-        <option value="Florida St Paddy's Day Invitational (FL)">Florida St Paddy's Day Invitational (FL)</option>
-        <option value="Sarasota Cup GIRLS (FL)">Sarasota Cup GIRLS (FL)</option>
-        <option value="Sarasota Cup BOYS (FL)">Sarasota Cup GIRLS (FL)</option>
-      </select>
+      <div>
+        <label for="stateFilter">Filter by region</label>
+        <select id="stateFilter">
+          <option value="all">All Southeast Venues</option>
+          <option value="Florida">Florida</option>
+          <option value="South Carolina">South Carolina</option>
+          <option value="Alabama">Alabama</option>
+          <option value="Georgia">Georgia</option>
+        </select>
+      </div>
+      <div>
+        <label for="eventFilter">Filter by event</label>
+        <select id="eventFilter">
+          <option value="all">All Events</option>
+        </select>
+      </div>
     </section>
 
     <section id="venueGrid" class="venue-grid" aria-live="polite"></section>
@@ -51,15 +59,29 @@
         <div class="status-key">
           <div><span class="dot green-dot"></span><strong>Green</strong><p>Normal operations. No weather threats detected.</p></div>
           <div><span class="dot yellow-dot"></span><strong>Yellow</strong><p>Potential delays, field changes, or active monitoring.</p></div>
-          <div><span class="dot red-dot"></span><strong>Red</strong><p>Facility closed, games delayed, suspended, or cancelled.</p></div>
+          <div><span class="dot red-dot"></span><strong>Red</strong><p>Facility closed. Games delayed, suspended, or cancelled.</p></div>
         </div>
       </article>
 
       <article class="panel">
-        <h2>Status History</h2>
-        <p class="muted">Last 72 hours</p>
-        <div id="historyList" class="history-list"></div>
+        <h2>Fast Actions for Teams</h2>
+        <div class="status-key">
+          <div><span class="dot green-dot"></span><strong>Green</strong><p>Report to fields as scheduled.</p></div>
+          <div><span class="dot yellow-dot"></span><strong>Yellow</strong><p>Stay close to your field and check updates often.</p></div>
+          <div><span class="dot red-dot"></span><strong>Red</strong><p>Clear the fields and wait for SMC staff instructions.</p></div>
+        </div>
       </article>
+    </section>
+
+    <section class="panel history-panel">
+      <div class="panel-header">
+        <div>
+          <h2>Status History</h2>
+          <p class="muted">Last 72 hours</p>
+        </div>
+        <button id="clearHistoryBtn" class="secondary small-btn admin-only hidden" type="button">Clear History</button>
+      </div>
+      <div id="historyList" class="history-list"></div>
     </section>
 
     <section class="admin-panel">
@@ -71,51 +93,62 @@
 
       <div id="commandCenter" class="command-center hidden">
         <div class="command-header">
-          <h2>Command Center</h2>
-          <button id="lockBtn" class="secondary">Lock</button>
+          <div>
+            <h2>Command Center</h2>
+            <p class="muted">Use templates first, then adjust notes as needed.</p>
+          </div>
+          <div class="command-tools">
+            <button id="fullScreenBtn" class="secondary" type="button">Full Screen</button>
+            <button id="lockBtn" class="secondary" type="button">Lock</button>
+          </div>
         </div>
 
-        <div class="admin-actions">
-          <button id="allGreenBtn">All Green</button>
-          <button id="allYellowBtn">All Yellow</button>
-          <button id="allRedBtn">All Red</button>
-          <button id="seedBtn" class="secondary">Reset Defaults</button>
+        <div class="admin-actions emergency-actions">
+          <button id="allGreenBtn" type="button">All Green</button>
+          <button id="allYellowBtn" type="button">All Yellow</button>
+          <button id="allRedBtn" class="danger" type="button">Emergency Red</button>
+          <button id="seedBtn" class="secondary" type="button">Reset Defaults</button>
         </div>
 
         <form id="globalForm" class="admin-form">
           <h3>Global Update</h3>
-          <label>Overall status</label>
+          <label for="globalStatusSelect">Overall status</label>
           <select id="globalStatusSelect">
             <option value="green">Green</option>
             <option value="yellow">Yellow</option>
             <option value="red">Red</option>
           </select>
-          <label>Public note</label>
-          <textarea id="globalNoteInput" rows="3"></textarea>
+
+          <label for="globalTemplateSelect">Status template</label>
+          <select id="globalTemplateSelect">
+            <option value="">Select a template</option>
+            <option value="allClear">All clear</option>
+            <option value="monitoring">Weather monitoring</option>
+            <option value="lightningDelay">Lightning delay</option>
+            <option value="heatAdvisory">Heat advisory</option>
+            <option value="fieldClosure">Field closure</option>
+            <option value="resumePlay">Resume play</option>
+          </select>
+
+          <label for="globalNoteInput">Public note</label>
+          <textarea id="globalNoteInput" rows="4"></textarea>
           <button type="submit">Save Global Update</button>
         </form>
 
         <form id="venueForm" class="admin-form">
           <h3>Add New Venue</h3>
-          <label>Venue name</label>
+          <label for="newVenueName">Venue name</label>
           <input id="newVenueName" type="text" placeholder="Example: Premier Sports Campus" />
-          <label>Region</label>
-          <select id="newVenueTournament">
-            <option value="Carolina Patriots Cup (NC)">Carolina Patriots Cup (NC)</option>
-            <option value="Florida Extreme Cup (FL)">Florida Extreme Cup (FL)</option>
-            <option value="Florence Cup (SC)">Florence Cup (SC)</option>
-            <option value="Palm Beach Gardens Classic Fall (FL)">Palm Beach Gardens Classic Fall (FL)</option>
-            <option value="Alabama Super Cup (AL)">Alabama Super Cup (AL)</option>
-            <option value="Florida Winter Cup Juniors (FL)">Florida Winter Cup Juniors (FL)</option>
-            <option value="Florida Winter Cup and Showcase (FL)">Florida Winter Cup & Showcase (FL)</option>
-            <option value="Gulf Coast Invitational (FL)">Gulf Coast Invitational (FL)</option>
-            <option value="Alabama President's Day Invitational (AL)">Alabama President's Day Invitational (AL)</option>
-            <option value="Palm Beach Gardens Classic Spring (FL)">Palm Beach Gardens Classic Spring (FL)</option>
-            <option value="Florida St Paddy's Day Invitational (FL)">Florida St Paddy's Day Invitational (FL)</option>
-            <option value="Sarasota Cup GIRLS (FL)">Sarasota Cup GIRLS (FL)</option>
-            <option value="Sarasota Cup BOYS (FL)">Sarasota Cup GIRLS (FL)</option>
+          <label for="newVenueState">Region</label>
+          <select id="newVenueState">
+            <option value="Florida">Florida</option>
+            <option value="South Carolina">South Carolina</option>
+            <option value="Alabama">Alabama</option>
+            <option value="Georgia">Georgia</option>
           </select>
-          <label>GPS or map link</label>
+          <label for="newVenueEvent">Event name</label>
+          <input id="newVenueEvent" type="text" placeholder="Example: Gulf Coast Invitational" />
+          <label for="newVenueMap">GPS or map link</label>
           <input id="newVenueMap" type="url" placeholder="https://maps.google.com/..." />
           <button type="submit">Add Venue</button>
         </form>
@@ -126,7 +159,7 @@
   </main>
 
   <footer class="footer">
-    <p>SMC Southeast Regional Weather Hub</p>
+    <p>SMC Soccer Southeast Weather Hotline</p>
   </footer>
 
   <script src="script.js"></script>

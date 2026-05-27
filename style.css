@@ -15,11 +15,32 @@
 
 * { box-sizing: border-box; }
 
+html { scroll-behavior: smooth; }
+
 body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
   background: var(--gray);
   color: var(--text);
+}
+
+.sticky-status {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  align-items: center;
+  padding: 10px 14px;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+}
+
+.sticky-status span:last-child {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.9;
 }
 
 .hero {
@@ -57,22 +78,29 @@ h1 { font-size: clamp(44px, 10vw, 86px); margin: 0; letter-spacing: 0.06em; }
   margin-bottom: 22px;
 }
 
+.notice-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
 .notice-card h2, .panel h2, .admin-panel h2 { margin-top: 0; }
-.public-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.public-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 label { font-weight: 700; display: block; margin-bottom: 8px; }
 select, input, textarea {
   width: 100%;
-  padding: 12px 14px;
+  padding: 13px 14px;
   border: 1px solid #cfd8e3;
   border-radius: 12px;
   font: inherit;
   background: var(--white);
 }
-.public-controls select { max-width: 320px; }
+textarea { resize: vertical; }
 
 .venue-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 18px;
   margin-bottom: 22px;
 }
@@ -83,13 +111,15 @@ select, input, textarea {
   padding: 22px;
   box-shadow: var(--shadow);
   border-top: 10px solid var(--green);
+  min-height: 240px;
 }
 .venue-card.yellow-border { border-top-color: var(--yellow); }
 .venue-card.red-border { border-top-color: var(--red); }
 .venue-card h2 { margin: 0 0 8px; }
 .venue-meta { color: var(--muted); margin: 0 0 12px; }
-.venue-note { margin-bottom: 14px; }
-.map-link { color: var(--blue); font-weight: 700; text-decoration: none; }
+.venue-note { margin: 14px 0; line-height: 1.5; }
+.map-link { color: var(--blue); font-weight: 800; text-decoration: none; }
+.map-link:hover { text-decoration: underline; }
 
 .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
 .status-key > div { border-bottom: 1px solid #e4e7ec; padding: 10px 0; }
@@ -102,6 +132,7 @@ select, input, textarea {
 .history-item { border-bottom: 1px solid #e4e7ec; padding: 12px 0; }
 .history-item strong { display: block; }
 .history-item span { color: var(--muted); font-size: 14px; }
+.panel-header { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
 
 .login-box { display: flex; gap: 10px; flex-wrap: wrap; }
 .login-box input { flex: 1; min-width: 240px; }
@@ -109,15 +140,19 @@ button {
   border: 0;
   background: var(--blue);
   color: var(--white);
-  padding: 12px 18px;
+  padding: 13px 18px;
   border-radius: 12px;
   font-weight: 800;
   cursor: pointer;
 }
 button.secondary { background: #344054; }
-.hidden { display: none; }
-.command-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+button.danger { background: var(--red); }
+button.small-btn { padding: 10px 14px; white-space: nowrap; }
+.hidden { display: none !important; }
+.command-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.command-tools { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .admin-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
+.emergency-actions button { min-width: 140px; }
 .admin-form { border: 1px solid #e4e7ec; border-radius: 16px; padding: 16px; margin: 18px 0; }
 .admin-form label { margin-top: 12px; }
 .admin-form button { margin-top: 14px; }
@@ -125,11 +160,31 @@ button.secondary { background: #344054; }
 .admin-venue-card h3 { margin-top: 0; }
 .footer { text-align: center; color: var(--muted); padding: 28px; }
 
+body.command-mode .hero,
+body.command-mode .controls,
+body.command-mode .info-grid,
+body.command-mode .footer,
+body.command-mode .admin-panel {
+  display: none;
+}
+
+body.command-mode .page-shell {
+  width: min(1400px, calc(100% - 28px));
+  margin-top: 24px;
+}
+
+body.command-mode .venue-grid {
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+}
+
 @media (max-width: 640px) {
+  .sticky-status { flex-direction: column; gap: 2px; }
   .hero { padding: 34px 14px; }
   .notice-card, .panel, .admin-panel, .controls { padding: 18px; }
+  .notice-card { flex-direction: column; }
   .command-header { align-items: flex-start; flex-direction: column; }
   button { width: 100%; }
   .login-box { display: block; }
   .login-box button { margin-top: 10px; }
+  .venue-card { min-height: auto; }
 }
