@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#071a33" />
-  <title>THE SIGNAL | Southeast Weather Hub</title>
+  <title>WEATHER UPDATES | Southeast Tournaments</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -15,9 +15,9 @@
 
   <header class="hero">
     <div class="hero-inner">
-      <p class="eyebrow">SMC Soccer Weather Hotline</p>
-      <h1>THE SIGNAL</h1>
-      <p class="subtitle">Southeast Weather Hub</p>
+      <p class="eyebrow">Soccer Management Company</p>
+      <h1>WEATHER UPDATES</h1>
+      <p class="subtitle">Southeast Tournaments</p>
       <div id="globalStatus" class="global-status green">GREEN STATUS</div>
       <p id="lastUpdated" class="last-updated">Last updated: Not yet updated</p>
     </div>
@@ -41,13 +41,14 @@
           <option value="South Carolina">South Carolina</option>
           <option value="Alabama">Alabama</option>
           <option value="Georgia">Georgia</option>
+          <option value="North Carolina">North Carolina</option>
         </select>
       </div>
       <div>
-        <label for="eventFilter">Filter by event</label>
-        <select id="eventFilter">
-          <option value="all">All Events</option>
+        <label for="eventFilter">Filter by tournament</label>
+        <select id="eventFilter" multiple size="6" aria-label="Filter by tournament">
         </select>
+        <p class="field-help">Hold Ctrl on Windows or Command on Mac to select multiple tournaments.</p>
       </div>
     </section>
 
@@ -145,9 +146,10 @@
             <option value="South Carolina">South Carolina</option>
             <option value="Alabama">Alabama</option>
             <option value="Georgia">Georgia</option>
+            <option value="North Carolina">North Carolina</option>
           </select>
-          <label for="newVenueEvent">Event name</label>
-          <input id="newVenueEvent" type="text" placeholder="Example: Gulf Coast Invitational" />
+          <label for="newVenueEvent">Tournament</label>
+          <select id="newVenueEvent"></select>
           <label for="newVenueMap">GPS or map link</label>
           <input id="newVenueMap" type="url" placeholder="https://maps.google.com/..." />
           <button type="submit">Add Venue</button>
@@ -159,7 +161,7 @@
   </main>
 
   <footer class="footer">
-    <p>SMC Soccer Southeast Weather Hotline</p>
+    <p>Soccer Management Company Southeast Weather Hotline</p>
   </footer>
 
   <script src="script.js"></script>

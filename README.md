@@ -49,3 +49,12 @@ const ADMIN_PASSWORD = "southeast2026";
 ## Important
 
 This starter version stores updates in each browser using localStorage. For multiple admins and live shared updates, upgrade to Firebase in Phase 2.
+
+
+## Latest requested changes
+
+- Updated main title to WEATHER UPDATES.
+- Updated brand line to Soccer Management Company.
+- Updated region title to Southeast Tournaments.
+- Added North Carolina as a region.
+- Added the full tournament list as a multi-select tournament filter.

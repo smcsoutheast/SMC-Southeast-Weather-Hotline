@@ -97,6 +97,8 @@ select, input, textarea {
   background: var(--white);
 }
 textarea { resize: vertical; }
+select[multiple] { min-height: 150px; }
+.field-help { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
 
 .venue-grid {
   display: grid;

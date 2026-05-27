@@ -1,6 +1,22 @@
 const ADMIN_PASSWORD = "southeast2026";
 const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase1";
 
+const tournamentOptions = [
+  "Carolina Patriots Cup (NC)",
+  "Florida Extreme Cup (FL)",
+  "Florence Cup (SC)",
+  "Palm Beach Gardens Classic Fall (FL)",
+  "Alabama Super Cup (AL)",
+  "Florida Winter Cup Juniors (FL)",
+  "Florida Winter Cup & Showcase (FL)",
+  "Gulf Coast Invitational (FL)",
+  "Alabama President's Day Invitational (AL)",
+  "Palm Beach Gardens Classic Spring (FL)",
+  "Florida St Paddy's Day Invitational (FL)",
+  "Sarasota Cup GIRLS (FL)",
+  "Sarasota Cup BOYS (FL)"
+];
+
 const templates = {
   allClear: "All venues are currently operating as scheduled. SMC staff will continue to monitor conditions and post updates here as needed.",
   monitoring: "SMC staff are monitoring weather and field conditions. Games remain scheduled unless noted below. Please keep checking this page for updates.",
@@ -15,11 +31,11 @@ const defaultData = {
   globalNote: templates.allClear,
   lastUpdated: null,
   venues: [
-    { id: safeUUID(), name: "Premier Sports Campus", state: "Florida", event: "Florida Extreme Cup", status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Wiregrass Ranch Sports Campus", state: "Florida", event: "Gulf Coast Invitational", status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Wesley Chapel District Park", state: "Florida", event: "Gulf Coast Invitational", status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Florence Soccer Complex", state: "South Carolina", event: "Florence Cup", status: "green", note: "Normal operations.", map: "" },
-    { id: safeUUID(), name: "Jack Allen Recreation Complex", state: "Alabama", event: "Alabama Super Cup", status: "green", note: "Normal operations.", map: "" }
+    { id: safeUUID(), name: "Premier Sports Campus", state: "Florida", event: "Florida Extreme Cup (FL)", status: "green", note: "Normal operations.", map: "" },
+    { id: safeUUID(), name: "Wiregrass Ranch Sports Campus", state: "Florida", event: "Gulf Coast Invitational (FL)", status: "green", note: "Normal operations.", map: "" },
+    { id: safeUUID(), name: "Wesley Chapel District Park", state: "Florida", event: "Gulf Coast Invitational (FL)", status: "green", note: "Normal operations.", map: "" },
+    { id: safeUUID(), name: "Florence Soccer Complex", state: "South Carolina", event: "Florence Cup (SC)", status: "green", note: "Normal operations.", map: "" },
+    { id: safeUUID(), name: "Jack Allen Recreation Complex", state: "Alabama", event: "Alabama Super Cup (AL)", status: "green", note: "Normal operations.", map: "" }
   ],
   history: []
 };
@@ -51,6 +67,7 @@ const globalTemplateSelect = document.getElementById("globalTemplateSelect");
 const globalNoteInput = document.getElementById("globalNoteInput");
 const venueForm = document.getElementById("venueForm");
 const adminVenueList = document.getElementById("adminVenueList");
+const newVenueEvent = document.getElementById("newVenueEvent");
 
 function safeUUID() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -72,6 +89,17 @@ function loadData() {
   }
 }
 
+function normalizeTournamentName(eventName) {
+  const map = {
+    "Florida Extreme Cup": "Florida Extreme Cup (FL)",
+    "Gulf Coast Invitational": "Gulf Coast Invitational (FL)",
+    "Florence Cup": "Florence Cup (SC)",
+    "Alabama Super Cup": "Alabama Super Cup (AL)",
+    "General": tournamentOptions[0]
+  };
+  return map[eventName] || eventName || tournamentOptions[0];
+}
+
 function migrateData(saved) {
   const merged = { ...clone(defaultData), ...saved };
   merged.venues = (saved.venues || defaultData.venues).map(venue => ({
@@ -80,7 +108,8 @@ function migrateData(saved) {
     note: "Normal operations.",
     status: "green",
     ...venue,
-    id: venue.id || safeUUID()
+    id: venue.id || safeUUID(),
+    event: normalizeTournamentName(venue.event)
   }));
   merged.history = saved.history || [];
   return merged;
@@ -129,14 +158,33 @@ function playAlertTone() {
 }
 
 function updateEventFilterOptions() {
-  const currentValue = eventFilter.value;
-  const events = [...new Set(data.venues.map(v => v.event || "General"))].sort();
-  eventFilter.innerHTML = `<option value="all">All Events</option>` + events.map(event => `<option value="${escapeAttr(event)}">${escapeHtml(event)}</option>`).join("");
-  eventFilter.value = events.includes(currentValue) ? currentValue : "all";
+  const selectedValues = getSelectedTournamentFilters();
+  eventFilter.innerHTML = `<option value="all">All Tournaments</option>` + tournamentOptions.map(event => `<option value="${escapeAttr(event)}">${escapeHtml(event)}</option>`).join("");
+
+  const validSelections = selectedValues.filter(value => value === "all" || tournamentOptions.includes(value));
+  if (!validSelections.length || validSelections.includes("all")) {
+    eventFilter.options[0].selected = true;
+  } else {
+    Array.from(eventFilter.options).forEach(option => {
+      option.selected = validSelections.includes(option.value);
+    });
+  }
+}
+
+function updateNewVenueEventOptions() {
+  if (!newVenueEvent) return;
+  const currentValue = newVenueEvent.value;
+  newVenueEvent.innerHTML = tournamentOptions.map(event => `<option value="${escapeAttr(event)}">${escapeHtml(event)}</option>`).join("");
+  if (tournamentOptions.includes(currentValue)) newVenueEvent.value = currentValue;
+}
+
+function getSelectedTournamentFilters() {
+  return Array.from(eventFilter.selectedOptions || []).map(option => option.value);
 }
 
 function render() {
   updateEventFilterOptions();
+  updateNewVenueEventOptions();
 
   const statusText = `${data.globalStatus.toUpperCase()} STATUS`;
   globalStatus.className = `global-status ${data.globalStatus}`;
@@ -148,10 +196,11 @@ function render() {
   lastUpdated.textContent = data.lastUpdated ? `Last updated: ${data.lastUpdated}` : "Last updated: Not yet updated";
 
   const selectedState = stateFilter.value;
-  const selectedEvent = eventFilter.value;
+  const selectedEvents = getSelectedTournamentFilters();
+  const showAllEvents = !selectedEvents.length || selectedEvents.includes("all");
   const venues = data.venues.filter(venue => {
     const regionMatch = selectedState === "all" || venue.state === selectedState;
-    const eventMatch = selectedEvent === "all" || venue.event === selectedEvent;
+    const eventMatch = showAllEvents || selectedEvents.includes(venue.event);
     return regionMatch && eventMatch;
   });
 
@@ -207,8 +256,10 @@ function renderAdminVenues() {
       </select>
       <label>Public note</label>
       <textarea rows="3" data-action="note" data-id="${venue.id}">${escapeHtml(venue.note || "")}</textarea>
-      <label>Event</label>
-      <input type="text" data-action="event" data-id="${venue.id}" value="${escapeAttr(venue.event || "General")}" />
+      <label>Tournament</label>
+      <select data-action="event" data-id="${venue.id}">
+        ${tournamentOptions.map(event => `<option value="${escapeAttr(event)}" ${venue.event === event ? "selected" : ""}>${escapeHtml(event)}</option>`).join("")}
+      </select>
       <label>Map link</label>
       <input type="url" data-action="map" data-id="${venue.id}" value="${escapeAttr(venue.map || "")}" />
       <div class="admin-actions">
@@ -278,7 +329,7 @@ venueForm.addEventListener("submit", event => {
   event.preventDefault();
   const name = document.getElementById("newVenueName").value.trim();
   const state = document.getElementById("newVenueState").value;
-  const eventName = document.getElementById("newVenueEvent").value.trim() || "General";
+  const eventName = document.getElementById("newVenueEvent").value || tournamentOptions[0];
   const map = document.getElementById("newVenueMap").value.trim();
   if (!name) return alert("Enter a venue name.");
   data.venues.push({ id: safeUUID(), name, state, event: eventName, status: "green", note: "Normal operations.", map });
@@ -316,7 +367,7 @@ adminVenueList.addEventListener("click", event => {
     const oldStatus = venue.status;
     venue.status = card.querySelector('[data-action="status"]').value;
     venue.note = card.querySelector('[data-action="note"]').value.trim() || "No current note.";
-    venue.event = card.querySelector('[data-action="event"]').value.trim() || "General";
+    venue.event = card.querySelector('[data-action="event"]').value || tournamentOptions[0];
     venue.map = card.querySelector('[data-action="map"]').value.trim();
     data.lastUpdated = nowStamp();
     addHistory(`${venue.name} changed to ${titleCaseStatus(venue.status)}`, venue.note);
