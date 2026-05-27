@@ -9,8 +9,8 @@
 <body>
   <header class="hero">
     <div class="hero-inner">
-      <p class="eyebrow">Soccer Management Company Weather Hotline</p>
-      <h1>THE SIGNAL</h1>
+      <p class="eyebrow">Soccer Management Company</p>
+      <h1>WEATHER UPDATES</h1>
       <p class="subtitle">Southeast Regional Hub</p>
       <div id="globalStatus" class="global-status green">GREEN STATUS</div>
       <p id="lastUpdated" class="last-updated">Last updated: Not yet updated</p>
@@ -24,14 +24,22 @@
     </section>
 
     <section class="controls public-controls">
-      <label for="stateFilter">Filter by region</label>
-      <select id="stateFilter">
-        <option value="all">All Southeast Venues</option>
-        <option value="Florida">Florida</option>
-        <option value="South Carolina">South Carolina</option>
-        <option value="Alabama">Alabama</option>
-        <option value="Georgia">Georgia</option>
-        <option value="North Carolina">North Carolina</option>
+      <label for="tournamentFilter">Filter by tournamnet</label>
+      <select id="tournamentFilter">
+        <option value="all">All Southeast Tournaments</option>
+        <option value="Carolina Patriots Cup (NC)">Carolina Patriots Cup (NC)</option>
+        <option value="Florida Extreme Cup (FL)">Florida Extreme Cup (FL)</option>
+        <option value="Florence Cup (SC)">Florence Cup (SC)</option>
+        <option value="Palm Beach Gardens Classic Fall (FL)">Palm Beach Gardens Classic Fall (FL)</option>
+        <option value="Alabama Super Cup (AL)">Alabama Super Cup (AL)</option>
+        <option value="Florida Winter Cup Juniors (FL)">Florida Winter Cup Juniors (FL)</option>
+        <option value="Florida Winter Cup and Showcase (FL)">Florida Winter Cup & Showcase (FL)</option>
+        <option value="Gulf Coast Invitational (FL)">Gulf Coast Invitational (FL)</option>
+        <option value="Alabama President's Day Invitational (AL)">Alabama President's Day Invitational (AL)</option>
+        <option value="Palm Beach Gardens Classic Spring (FL)">"Palm Beach Gardens Classic Spring (FL)</option>
+        <option value="Florida St Paddy's Day Invitational (FL)">Florida St Paddy's Day Invitational (FL)</option>
+        <option value="Sarasota Cup GIRLS (FL)">Sarasota Cup GIRLS (FL)</option>
+        <option value="Sarasota Cup BOYS (FL)">Sarasota Cup GIRLS (FL)</option>
       </select>
     </section>
 
@@ -92,12 +100,20 @@
           <label>Venue name</label>
           <input id="newVenueName" type="text" placeholder="Example: Premier Sports Campus" />
           <label>Region</label>
-          <select id="newVenueState">
-            <option value="Florida">Florida</option>
-            <option value="South Carolina">South Carolina</option>
-            <option value="Alabama">Alabama</option>
-            <option value="Georgia">Georgia</option>
-            <option value="North Carolina">North Carolina</option>
+          <select id="newVenueTournament">
+            <option value="Carolina Patriots Cup (NC)">Carolina Patriots Cup (NC)</option>
+            <option value="Florida Extreme Cup (FL)">Florida Extreme Cup (FL)</option>
+            <option value="Florence Cup (SC)">Florence Cup (SC)</option>
+            <option value="Palm Beach Gardens Classic Fall (FL)">Palm Beach Gardens Classic Fall (FL)</option>
+            <option value="Alabama Super Cup (AL)">Alabama Super Cup (AL)</option>
+            <option value="Florida Winter Cup Juniors (FL)">Florida Winter Cup Juniors (FL)</option>
+            <option value="Florida Winter Cup and Showcase (FL)">Florida Winter Cup & Showcase (FL)</option>
+            <option value="Gulf Coast Invitational (FL)">Gulf Coast Invitational (FL)</option>
+            <option value="Alabama President's Day Invitational (AL)">Alabama President's Day Invitational (AL)</option>
+            <option value="Palm Beach Gardens Classic Spring (FL)">"Palm Beach Gardens Classic Spring (FL)</option>
+            <option value="Florida St Paddy's Day Invitational (FL)">Florida St Paddy's Day Invitational (FL)</option>
+            <option value="Sarasota Cup GIRLS (FL)">Sarasota Cup GIRLS (FL)</option>
+            <option value="Sarasota Cup BOYS (FL)">Sarasota Cup GIRLS (FL)</option>
           </select>
           <label>GPS or map link</label>
           <input id="newVenueMap" type="url" placeholder="https://maps.google.com/..." />
@@ -110,7 +126,7 @@
   </main>
 
   <footer class="footer">
-    <p>SMC Soccer Southeast Weather Hotline</p>
+    <p>SMC Southeast Regional Weather Hub</p>
   </footer>
 
   <script src="script.js"></script>
