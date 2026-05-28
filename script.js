@@ -68,6 +68,7 @@ const defaultData = {
 let data = loadData();
 let adminUnlocked = false;
 let currentAdmin = null;
+let lightningPanelExpanded = false;
 
 const elements = {
   globalStatus: document.getElementById("globalStatus"),
@@ -79,6 +80,7 @@ const elements = {
   venueGrid: document.getElementById("venueGrid"),
   publicLightningPanel: document.getElementById("publicLightningPanel"),
   publicLightningList: document.getElementById("publicLightningList"),
+  publicLightningBadge: document.getElementById("publicLightningBadge"),
   fieldStatusPanel: document.getElementById("fieldStatusPanel"),
   fieldStatusBoard: document.getElementById("fieldStatusBoard"),
   timelineList: document.getElementById("timelineList"),
@@ -389,6 +391,11 @@ function getLatestPublicLightningAlerts() {
   return Array.from(latestByVenue.values()).slice(0, 6);
 }
 
+function getLatestLightningAllClear() {
+  const publicVenueIds = new Set(getPublicVenues().map(venue => venue.id));
+  return data.lightningAlerts.find(alert => alert.status === "green" && publicVenueIds.has(alert.venueId)) || null;
+}
+
 function formatLightningDistance(distance) {
   if (distance === null || distance === undefined || Number.isNaN(Number(distance))) return "Not entered";
   return `${Number(distance).toFixed(1)} miles`;
@@ -419,30 +426,66 @@ function renderPublicLightningAlerts() {
   const alerts = getLatestPublicLightningAlerts();
   if (!elements.publicLightningPanel || !elements.publicLightningList) return;
 
-  elements.publicLightningPanel.classList.toggle("hidden", !alerts.length);
-  elements.publicLightningList.innerHTML = alerts.length ? alerts.map(alert => {
-    const countdown = getLightningCountdownParts(alert);
-    return `
-      <article class="public-lightning-card ${escapeAttr(alert.status)}-lightning-card">
-        <div class="public-lightning-header">
-          <h3>${escapeHtml(String(alert.venueName || "Venue").toUpperCase())}</h3>
-          <span class="alert-status-pill ${escapeAttr(alert.status)}">${escapeHtml(titleCaseStatus(alert.status))}</span>
-        </div>
-        <div class="lightning-public-grid">
-          <div class="lightning-stat-box">
-            <span>Closest lightning strike</span>
-            <strong>${escapeHtml(formatLightningDistance(alert.distance))}</strong>
+  if (alerts.length) {
+    if (elements.publicLightningBadge) elements.publicLightningBadge.classList.add("hidden");
+    elements.publicLightningPanel.classList.remove("hidden");
+    elements.publicLightningList.innerHTML = alerts.map(alert => {
+      const countdown = getLightningCountdownParts(alert);
+      return `
+        <article class="public-lightning-card ${escapeAttr(alert.status)}-lightning-card">
+          <div class="public-lightning-header">
+            <h3>${escapeHtml(String(alert.venueName || "Venue").toUpperCase())}</h3>
+            <span class="alert-status-pill ${escapeAttr(alert.status)}">${escapeHtml(titleCaseStatus(alert.status))}</span>
           </div>
-          <div class="lightning-stat-box countdown-box">
-            <span>${escapeHtml(countdown.label)}</span>
-            <strong class="lightning-countdown-clock">${escapeHtml(countdown.clock)}</strong>
+          <div class="lightning-public-grid">
+            <div class="lightning-stat-box">
+              <span>Closest lightning strike</span>
+              <strong>${escapeHtml(formatLightningDistance(alert.distance))}</strong>
+            </div>
+            <div class="lightning-stat-box countdown-box">
+              <span>${escapeHtml(countdown.label)}</span>
+              <strong class="lightning-countdown-clock">${escapeHtml(countdown.clock)}</strong>
+            </div>
           </div>
+          <p class="lightning-public-note">${escapeHtml(alert.note || countdown.detail)}</p>
+          <div class="public-lightning-meta">Updated: ${escapeHtml(alert.time || "Time not recorded")} | Source: ${escapeHtml(alert.source || "Not listed")}</div>
+        </article>
+      `;
+    }).join("");
+    return;
+  }
+
+  const latestAllClear = getLatestLightningAllClear();
+  if (elements.publicLightningBadge) {
+    elements.publicLightningBadge.classList.remove("hidden");
+    elements.publicLightningBadge.setAttribute("aria-expanded", String(lightningPanelExpanded));
+  }
+  elements.publicLightningPanel.classList.toggle("hidden", !lightningPanelExpanded);
+
+  const allClearNote = latestAllClear ? latestAllClear.note : "No active lightning delay is posted. Continue checking this page for updates.";
+  const allClearTime = latestAllClear ? latestAllClear.time : (data.lastUpdated || "Not yet updated");
+  const allClearSource = latestAllClear ? latestAllClear.source : "SMC staff";
+
+  elements.publicLightningList.innerHTML = lightningPanelExpanded ? `
+    <article class="public-lightning-card green-lightning-card all-clear-lightning-card">
+      <div class="public-lightning-header">
+        <h3>LIGHTNING STATUS</h3>
+        <span class="alert-status-pill green">ALL CLEAR</span>
+      </div>
+      <div class="lightning-public-grid">
+        <div class="lightning-stat-box">
+          <span>Closest lightning strike</span>
+          <strong>Clear</strong>
         </div>
-        <p class="lightning-public-note">${escapeHtml(alert.note || countdown.detail)}</p>
-        <div class="public-lightning-meta">Updated: ${escapeHtml(alert.time || "Time not recorded")} | Source: ${escapeHtml(alert.source || "Not listed")}</div>
-      </article>
-    `;
-  }).join("") : "";
+        <div class="lightning-stat-box countdown-box">
+          <span>Lightning countdown</span>
+          <strong class="lightning-countdown-clock">00:00</strong>
+        </div>
+      </div>
+      <p class="lightning-public-note">${escapeHtml(allClearNote)}</p>
+      <div class="public-lightning-meta">Updated: ${escapeHtml(allClearTime)} | Source: ${escapeHtml(allClearSource)}</div>
+    </article>
+  ` : "";
 }
 
 function renderPublicVenues() {
@@ -584,6 +627,7 @@ function renderLightningAlerts() {
         <p>${escapeHtml(alert.note || "No alert note entered.")}</p>
         <span class="alert-status-pill ${escapeAttr(alert.status)}">${escapeHtml(titleCaseStatus(alert.status))}</span>
         ${countdown ? `<div class="lightning-countdown">${escapeHtml(countdown)}</div>` : ""}
+        ${["red", "yellow"].includes(alert.status) ? `<button class="secondary small-btn manual-clear-btn" data-action="manualLightningAllClear" data-alert-id="${escapeAttr(alert.id)}" type="button">Manual All Clear</button>` : ""}
       </div>
     `;
   }).join("") : `<p class="muted">No lightning alerts recorded yet.</p>`;
@@ -788,6 +832,12 @@ elements.lockBtn.addEventListener("click", lockAdmin);
 elements.stateFilter.addEventListener("change", render);
 elements.eventFilter.addEventListener("change", render);
 elements.refreshBtn.addEventListener("click", render);
+if (elements.publicLightningBadge) {
+  elements.publicLightningBadge.addEventListener("click", () => {
+    lightningPanelExpanded = !lightningPanelExpanded;
+    renderPublicLightningAlerts();
+  });
+}
 
 elements.fullScreenBtn.addEventListener("click", () => {
   document.body.classList.toggle("command-mode");
@@ -931,6 +981,51 @@ elements.clearIncidentsBtn.addEventListener("click", () => {
   render();
 });
 
+function applyManualLightningAllClear(alertId) {
+  if (!adminUnlocked) return;
+  const alert = data.lightningAlerts.find(item => item.id === alertId);
+  if (!alert) return;
+  const venue = data.venues.find(item => item.id === alert.venueId);
+  const venueName = alert.venueName || (venue ? venue.name : "Selected venue");
+  const note = `SMC staff have issued the all clear for ${venueName}. Play may resume when referees and facility staff confirm fields are ready.`;
+
+  if (venue) {
+    venue.status = "green";
+    venue.note = note;
+  }
+
+  alert.status = "green";
+  alert.note = note;
+  alert.allClearTarget = null;
+  alert.autoCleared = true;
+  alert.manualCleared = true;
+  alert.clearedBy = adminLabel();
+  alert.clearedAt = nowStamp();
+
+  data.lightningAlerts.unshift({
+    id: safeUUID(),
+    venueId: alert.venueId,
+    venueName,
+    distance: alert.distance ?? null,
+    minutes: LIGHTNING_CLEAR_MINUTES,
+    source: "Manual all clear",
+    status: "green",
+    note,
+    allClearTarget: null,
+    autoCleared: true,
+    manualCleared: true,
+    time: nowStamp(),
+    admin: adminLabel()
+  });
+
+  data.lightningAlerts = data.lightningAlerts.slice(0, 40);
+  data.lastUpdated = nowStamp();
+  addHistory(`${venueName} lightning all clear`, note, "green");
+  addTimeline(`${venueName} manual lightning all clear`, note);
+  saveData();
+  render();
+}
+
 elements.lightningForm.addEventListener("submit", event => {
   event.preventDefault();
   const venue = data.venues.find(item => item.id === elements.lightningVenueSelect.value);
@@ -981,6 +1076,13 @@ elements.lightningForm.addEventListener("submit", event => {
   elements.lightningForm.reset();
   if (status === "red" && oldStatus !== "red") playAlertTone();
   render();
+});
+
+elements.lightningAlertList.addEventListener("click", event => {
+  const button = event.target.closest("button[data-action='manualLightningAllClear']");
+  if (!button) return;
+  event.preventDefault();
+  applyManualLightningAllClear(button.dataset.alertId);
 });
 
 elements.aiUpdateForm.addEventListener("submit", event => {

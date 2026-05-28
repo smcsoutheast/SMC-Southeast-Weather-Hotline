@@ -143,3 +143,13 @@ The public venue cards show only:
 - Public note
 
 Venue names display in uppercase. Card content is centered. Card color matches the venue status.
+
+
+## Latest Lightning Updates
+
+- Added a Manual All Clear button in Active Lightning Alerts.
+- The button changes the selected venue to Green.
+- It posts a Green lightning all-clear entry to Status History.
+- It updates the public venue note.
+- When no Red or Yellow lightning alert is active, the public lightning panel stays collapsed behind a yellow lightning bolt badge.
+- Visitors may tap the yellow lightning badge to view the current all-clear lightning status.
