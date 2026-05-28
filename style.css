@@ -270,7 +270,8 @@ body.command-mode .hero,
 body.command-mode .info-grid,
 body.command-mode .footer,
 body.command-mode .history-panel,
-body.command-mode .field-status-panel {
+body.command-mode .field-status-panel,
+body.command-mode .lightning-public-panel {
   display: none;
 }
 body.command-mode .page-shell { width: min(1400px, calc(100% - 28px)); margin-top: 24px; }
@@ -332,3 +333,71 @@ body.command-mode .admin-drawer { width: min(980px, 100vw); }
 .history-status-pill.yellow,
 .venue-status-pill.yellow,
 .alert-status-pill.yellow { color: var(--white); }
+
+.lightning-public-panel { margin-bottom: 22px; }
+.public-lightning-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.public-lightning-card {
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 24px rgba(7, 26, 51, 0.08);
+  background: var(--white);
+}
+.public-lightning-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.public-lightning-header h3 {
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+.lightning-public-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.lightning-stat-box {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  background: #f8fafc;
+}
+.lightning-stat-box span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.lightning-stat-box strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 26px;
+  line-height: 1.1;
+}
+.lightning-countdown-clock {
+  font-size: clamp(34px, 7vw, 54px) !important;
+  font-variant-numeric: tabular-nums;
+}
+.lightning-public-note {
+  margin: 14px 0 8px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.public-lightning-meta {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.red-lightning-card { border-left: 8px solid var(--red); }
+.yellow-lightning-card { border-left: 8px solid var(--yellow); }
+.green-lightning-card { border-left: 8px solid var(--green); }
+

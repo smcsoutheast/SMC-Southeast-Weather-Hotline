@@ -77,6 +77,8 @@ const elements = {
   lastUpdated: document.getElementById("lastUpdated"),
   globalNote: document.getElementById("globalNote"),
   venueGrid: document.getElementById("venueGrid"),
+  publicLightningPanel: document.getElementById("publicLightningPanel"),
+  publicLightningList: document.getElementById("publicLightningList"),
   fieldStatusPanel: document.getElementById("fieldStatusPanel"),
   fieldStatusBoard: document.getElementById("fieldStatusBoard"),
   timelineList: document.getElementById("timelineList"),
@@ -345,6 +347,7 @@ function render() {
   elements.globalNoteInput.value = data.globalNote;
   elements.lastUpdated.textContent = data.lastUpdated ? `Last updated: ${data.lastUpdated}` : "Last updated: Not yet updated";
 
+  renderPublicLightningAlerts();
   renderPublicVenues();
   renderFieldStatusBoard();
   renderTimeline();
@@ -370,6 +373,76 @@ function getCommandVenues() {
     const eventMatch = showAllEvents || venue.events.some(event => selectedEvents.includes(event));
     return regionMatch && eventMatch;
   });
+}
+
+function getLatestPublicLightningAlerts() {
+  const publicVenueIds = new Set(getPublicVenues().map(venue => venue.id));
+  const latestByVenue = new Map();
+
+  data.lightningAlerts.forEach(alert => {
+    if (!publicVenueIds.has(alert.venueId) || latestByVenue.has(alert.venueId)) return;
+    const countdownActive = alert.status === "red" && alert.allClearTarget && !alert.autoCleared;
+    const monitoringActive = alert.status === "yellow";
+    if (countdownActive || monitoringActive) latestByVenue.set(alert.venueId, alert);
+  });
+
+  return Array.from(latestByVenue.values()).slice(0, 6);
+}
+
+function formatLightningDistance(distance) {
+  if (distance === null || distance === undefined || Number.isNaN(Number(distance))) return "Not entered";
+  return `${Number(distance).toFixed(1)} miles`;
+}
+
+function getLightningCountdownParts(alert) {
+  if (!alert.allClearTarget || alert.status !== "red") {
+    return { clock: "--:--", label: "No active delay countdown", detail: "SMC staff are monitoring conditions." };
+  }
+
+  const remainingMs = alert.allClearTarget - Date.now();
+  if (remainingMs <= 0) {
+    return { clock: "00:00", label: "Timer complete", detail: "Wait for SMC staff confirmation before returning to fields." };
+  }
+
+  const totalSeconds = Math.ceil(remainingMs / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+  return {
+    clock: `${minutes}:${seconds}`,
+    label: "Lightning countdown",
+    detail: "Time remaining until the 30-minute timer is complete."
+  };
+}
+
+function renderPublicLightningAlerts() {
+  const alerts = getLatestPublicLightningAlerts();
+  if (!elements.publicLightningPanel || !elements.publicLightningList) return;
+
+  elements.publicLightningPanel.classList.toggle("hidden", !alerts.length);
+  elements.publicLightningList.innerHTML = alerts.length ? alerts.map(alert => {
+    const countdown = getLightningCountdownParts(alert);
+    return `
+      <article class="public-lightning-card ${escapeAttr(alert.status)}-lightning-card">
+        <div class="public-lightning-header">
+          <h3>${escapeHtml(String(alert.venueName || "Venue").toUpperCase())}</h3>
+          <span class="alert-status-pill ${escapeAttr(alert.status)}">${escapeHtml(titleCaseStatus(alert.status))}</span>
+        </div>
+        <div class="lightning-public-grid">
+          <div class="lightning-stat-box">
+            <span>Closest lightning strike</span>
+            <strong>${escapeHtml(formatLightningDistance(alert.distance))}</strong>
+          </div>
+          <div class="lightning-stat-box countdown-box">
+            <span>${escapeHtml(countdown.label)}</span>
+            <strong class="lightning-countdown-clock">${escapeHtml(countdown.clock)}</strong>
+          </div>
+        </div>
+        <p class="lightning-public-note">${escapeHtml(alert.note || countdown.detail)}</p>
+        <div class="public-lightning-meta">Updated: ${escapeHtml(alert.time || "Time not recorded")} | Source: ${escapeHtml(alert.source || "Not listed")}</div>
+      </article>
+    `;
+  }).join("") : "";
 }
 
 function renderPublicVenues() {
@@ -987,6 +1060,7 @@ setInterval(() => {
     saveData();
     render();
   } else {
+    renderPublicLightningAlerts();
     renderLightningAlerts();
   }
-}, 60000);
+}, 1000);

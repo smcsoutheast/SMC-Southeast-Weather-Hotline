@@ -35,6 +35,8 @@ Phase 3 adds the next operational layer on top of the full Phase 2 build.
 ## Phase 3 features included
 
 - Automated lightning alert workflow
+- Public lightning distance display
+- Public lightning countdown clock
 - 10-mile Red status trigger
 - 15-mile Yellow monitoring trigger
 - 30-minute lightning clear timer
@@ -91,6 +93,7 @@ https://smcsoccer.github.io/SMC-Southeast-Weather-Hotline/
 - 15 miles or less sets the selected venue to Yellow.
 - 30 minutes since last strike sets the selected venue to Green.
 - A Red lightning alert starts a 30-minute countdown.
+- The public page shows the closest strike distance and active countdown clock.
 - When the countdown finishes, the venue changes to Green with a restart confirmation note.
 
 ## Field status board
