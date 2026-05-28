@@ -171,4 +171,4 @@ This version uses a new localStorage key so the hotline starts with no venue rec
 
 ## Public page branding updates
 
-The public page includes the Soccer Management Company logo, app reference cards for My Lightning Tracker & Alerts and MyRadar, and the footer text: Soccer Management Company - Southeast Weather Hub.
+The public footer includes the Soccer Management Company logo and the footer text: Soccer Management Company - Southeast Weather Hub. The public page also includes app reference cards for My Lightning Tracker & Alerts and MyRadar with this heading: SMC Southeast uses the following weather apps when monitoring weather conditions in addition to weather alerts from the National Weather Service.

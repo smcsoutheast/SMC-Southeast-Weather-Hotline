@@ -548,16 +548,20 @@ body.command-mode .venue-grid {
 }
 
 
-.smc-logo {
-  width: min(280px, 72vw);
+.footer-logo {
+  width: min(220px, 68vw);
   height: auto;
   display: block;
-  margin: 0 auto 18px;
-  filter: drop-shadow(0 18px 28px rgba(0,0,0,0.18));
+  margin: 0 auto 16px;
+  filter: drop-shadow(0 12px 22px rgba(0,0,0,0.14));
 }
 
 .weather-apps-panel {
   margin-top: 22px;
+}
+.weather-apps-panel h2 {
+  max-width: 980px;
+  line-height: 1.25;
 }
 .weather-app-grid {
   display: grid;
