@@ -79,14 +79,12 @@
       </article>
     </section>
 
-
     <section class="panel history-panel">
       <div class="panel-header">
         <div>
           <h2>Status History</h2>
           <p class="muted">Last 72 hours</p>
         </div>
-        <button id="clearHistoryBtn" class="secondary small-btn admin-only hidden" type="button">Clear History</button>
       </div>
       <div id="historyList" class="history-list"></div>
     </section>
@@ -113,238 +111,265 @@
         <div class="command-header">
           <div>
             <h2>Command Center</h2>
-            <p class="muted">Use templates first, then adjust notes as needed.</p>
+            <p class="muted">Use tabs to manage public updates, lightning, fields, venues, and logs.</p>
           </div>
           <div class="command-tools">
-            <button id="fullScreenBtn" class="secondary" type="button">Full Screen</button>
+            <button id="fullScreenBtn" class="secondary" type="button">Exit Full Screen</button>
             <button id="lockBtn" class="secondary" type="button">Lock</button>
           </div>
         </div>
 
-        <section class="controls command-controls">
-          <div>
-            <label for="stateFilter">Command Center region filter</label>
-            <select id="stateFilter">
-              <option value="all">All Southeast Venues</option>
+        <nav class="admin-tabs" aria-label="Command center tabs">
+          <button class="tab-btn active" data-tab="overview" type="button">Overview</button>
+          <button class="tab-btn" data-tab="lightning" type="button">Lightning</button>
+          <button class="tab-btn" data-tab="fields" type="button">Fields</button>
+          <button class="tab-btn" data-tab="venues" type="button">Venues</button>
+          <button class="tab-btn" data-tab="logs" type="button">Logs</button>
+        </nav>
+
+        <section class="tab-panel active" data-tab-panel="overview">
+          <section class="controls command-controls">
+            <div>
+              <label for="stateFilter">Command Center region filter</label>
+              <select id="stateFilter">
+                <option value="all">All Southeast Venues</option>
+                <option value="Florida">Florida</option>
+                <option value="North Carolina">North Carolina</option>
+                <option value="South Carolina">South Carolina</option>
+                <option value="Alabama">Alabama</option>
+                <option value="Georgia">Georgia</option>
+              </select>
+            </div>
+            <div>
+              <label>Command Center tournament filter</label>
+              <div class="checkbox-dropdown" data-dropdown="eventFilter">
+                <button id="eventFilterToggle" class="checkbox-dropdown-toggle" type="button">All Tournaments</button>
+                <div id="eventFilterCheckboxMenu" class="checkbox-menu hidden"></div>
+              </div>
+              <select id="eventFilter" multiple class="native-hidden" aria-hidden="true"></select>
+              <p class="field-help">Select one or more tournaments.</p>
+            </div>
+          </section>
+
+          <form id="publicViewForm" class="admin-form">
+            <h3>Public Tournament View</h3>
+            <label class="check-row">
+              <input id="showCurrentOnly" type="checkbox" />
+              Show only current tournaments in public view
+            </label>
+            <label>Current tournaments</label>
+            <div class="checkbox-dropdown" data-dropdown="currentTournamentSelect">
+              <button id="currentTournamentToggle" class="checkbox-dropdown-toggle" type="button">No current tournaments selected</button>
+              <div id="currentTournamentCheckboxMenu" class="checkbox-menu hidden"></div>
+            </div>
+            <select id="currentTournamentSelect" multiple class="native-hidden" aria-hidden="true"></select>
+            <p class="field-help">Venues assigned to at least one selected current tournament will display publicly.</p>
+            <button type="submit">Save Public View</button>
+          </form>
+
+          <div class="admin-actions emergency-actions">
+            <button id="allGreenBtn" type="button">All Green</button>
+            <button id="allYellowBtn" type="button">All Yellow</button>
+            <button id="allRedBtn" class="danger" type="button">Emergency Red</button>
+            <button id="seedBtn" class="secondary" type="button">Reset to Blank Defaults</button>
+          </div>
+
+          <form id="globalForm" class="admin-form">
+            <h3>Global Update</h3>
+            <p class="field-help">Overall status updates automatically from venue status. Red overrides Yellow. Yellow overrides Green.</p>
+            <label for="globalTemplateSelect">Status template</label>
+            <select id="globalTemplateSelect">
+              <option value="">Select a template</option>
+              <option value="allClear">All clear</option>
+              <option value="monitoring">Weather monitoring</option>
+              <option value="lightningDelay">Lightning delay</option>
+              <option value="heatAdvisory">Heat advisory</option>
+              <option value="fieldClosure">Field closure</option>
+              <option value="resumePlay">Resume play</option>
+            </select>
+
+            <label for="globalNoteInput">Public note</label>
+            <textarea id="globalNoteInput" rows="4"></textarea>
+            <button type="submit">Save Global Note</button>
+          </form>
+        </section>
+
+        <section class="tab-panel" data-tab-panel="lightning">
+          <form id="lightningForm" class="admin-form">
+            <h3>Automated Lightning Alerts</h3>
+            <p class="field-help">Enter the latest strike distance. The system will set the venue to Red at 10 miles or less, Yellow at 15 miles or less, and Green after a 30-minute clear timer.</p>
+            <label for="lightningVenueSelect">Venue</label>
+            <select id="lightningVenueSelect"></select>
+            <label for="lightningDistanceInput">Closest lightning strike distance in miles</label>
+            <input id="lightningDistanceInput" type="number" min="0" step="0.1" placeholder="Example: 8.5" />
+            <label for="lightningMinutesInput">Minutes since last detected strike</label>
+            <input id="lightningMinutesInput" type="number" min="0" step="1" placeholder="Example: 12" />
+            <label for="lightningSourceSelect">Alert source</label>
+            <select id="lightningSourceSelect">
+              <option value="Radar or lightning app">Radar or lightning app</option>
+              <option value="Venue staff report">Venue staff report</option>
+              <option value="Weather service alert">Weather service alert</option>
+              <option value="Tournament director decision">Tournament director decision</option>
+            </select>
+            <label for="lightningNotesInput">Private lightning note</label>
+            <textarea id="lightningNotesInput" rows="3" placeholder="Add source details or staff instructions."></textarea>
+            <button type="submit">Apply Lightning Check</button>
+          </form>
+
+          <section class="admin-form">
+            <div class="panel-header compact-header">
+              <div>
+                <h3>Active Lightning Alerts</h3>
+                <p class="field-help">Countdowns and alert records for staff.</p>
+              </div>
+            </div>
+            <div id="lightningAlertList" class="incident-list"></div>
+          </section>
+
+          <form id="aiUpdateForm" class="admin-form">
+            <h3>AI-Generated Weather Update</h3>
+            <p class="field-help">Build a public update from a weather alert. Review the draft before applying it.</p>
+            <label for="aiVenueSelect">Venue</label>
+            <select id="aiVenueSelect"></select>
+            <label for="aiAlertTypeSelect">Weather alert type</label>
+            <select id="aiAlertTypeSelect">
+              <option value="Lightning">Lightning</option>
+              <option value="Severe Weather">Severe Weather</option>
+              <option value="Heavy Rain">Heavy Rain</option>
+              <option value="Heat Advisory">Heat Advisory</option>
+              <option value="Field Conditions">Field Conditions</option>
+              <option value="Resume Play">Resume Play</option>
+            </select>
+            <label for="aiSeveritySelect">Action level</label>
+            <select id="aiSeveritySelect">
+              <option value="Monitoring">Monitoring</option>
+              <option value="Delay">Delay</option>
+              <option value="Suspended">Suspended</option>
+              <option value="All Clear">All Clear</option>
+            </select>
+            <label for="aiWeatherDetailsInput">Weather alert details</label>
+            <textarea id="aiWeatherDetailsInput" rows="4" placeholder="Example: Lightning detected within 8 miles. Teams should clear fields now."></textarea>
+            <button type="submit">Generate Update Draft</button>
+            <label for="aiGeneratedOutput">Generated public update</label>
+            <textarea id="aiGeneratedOutput" rows="5" placeholder="Generated update will appear here."></textarea>
+            <div class="admin-actions">
+              <button id="aiApplyVenueBtn" type="button">Apply to Venue</button>
+              <button id="aiApplyGlobalBtn" class="secondary" type="button">Apply as Global Note</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="tab-panel" data-tab-panel="fields">
+          <form id="fieldStatusForm" class="admin-form">
+            <h3>Dynamic Field Status Board</h3>
+            <label for="fieldVenueSelect">Venue</label>
+            <select id="fieldVenueSelect"></select>
+            <label for="fieldNameInput">Field name or number</label>
+            <input id="fieldNameInput" type="text" placeholder="Example: Field 1" />
+            <label for="fieldStatusSelect">Field status</label>
+            <select id="fieldStatusSelect">
+              <option value="Open">Open</option>
+              <option value="Delayed">Delayed</option>
+              <option value="Closed">Closed</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Maintenance">Maintenance</option>
+            </select>
+            <label for="fieldNoteInput">Public field note</label>
+            <textarea id="fieldNoteInput" rows="3" placeholder="Example: Field 3 is under review due to standing water."></textarea>
+            <button type="submit">Save Field Status</button>
+          </form>
+
+          <section class="admin-form">
+            <div class="panel-header compact-header">
+              <div>
+                <h3>Field Status Records</h3>
+                <p class="field-help">These records show publicly in the Field Status Board.</p>
+              </div>
+              <button id="clearFieldBoardBtn" class="secondary small-btn" type="button">Clear Field Board</button>
+            </div>
+            <div id="fieldBoardAdminList" class="incident-list"></div>
+          </section>
+        </section>
+
+        <section class="tab-panel" data-tab-panel="venues">
+          <form id="venueForm" class="admin-form">
+            <h3>Add New Venue</h3>
+            <label for="newVenueName">Venue name</label>
+            <input id="newVenueName" type="text" placeholder="Example: Premier Sports Campus" />
+            <label for="newVenueState">Region</label>
+            <select id="newVenueState">
               <option value="Florida">Florida</option>
               <option value="North Carolina">North Carolina</option>
               <option value="South Carolina">South Carolina</option>
               <option value="Alabama">Alabama</option>
               <option value="Georgia">Georgia</option>
             </select>
-          </div>
-          <div>
-            <label for="eventFilter">Command Center tournament filter</label>
-            <select id="eventFilter" multiple size="7" aria-label="Filter by tournament"></select>
-            <p class="field-help">Hold Ctrl on Windows or Command on Mac to select multiple tournaments.</p>
-          </div>
+            <label for="newVenueEvents">Tournaments</label>
+            <select id="newVenueEvents" multiple size="8"></select>
+            <label for="newVenueAddress">Venue address or details</label>
+            <input id="newVenueAddress" type="text" placeholder="Street address, city, state" />
+            <label for="newVenueMap">GPS or map link</label>
+            <input id="newVenueMap" type="url" placeholder="https://maps.google.com/..." />
+            <button type="submit">Add Venue</button>
+          </form>
+
+          <div id="adminVenueList" class="admin-venue-list"></div>
         </section>
 
-        <form id="publicViewForm" class="admin-form">
-          <h3>Public Tournament View</h3>
-          <label class="check-row">
-            <input id="showCurrentOnly" type="checkbox" />
-            Show only current tournaments in public view
-          </label>
-          <label for="currentTournamentSelect">Current tournaments</label>
-          <select id="currentTournamentSelect" multiple size="8" aria-label="Current tournaments"></select>
-          <p class="field-help">Venues assigned to at least one selected current tournament will display publicly.</p>
-          <button type="submit">Save Public View</button>
-        </form>
+        <section class="tab-panel" data-tab-panel="logs">
+          <form id="timelineForm" class="admin-form">
+            <h3>Add Timeline Update</h3>
+            <label for="timelineTitleInput">Title</label>
+            <input id="timelineTitleInput" type="text" placeholder="Example: Lightning delay issued" />
+            <label for="timelineBodyInput">Private operations timeline note</label>
+            <textarea id="timelineBodyInput" rows="3" placeholder="Enter a short operations update for staff."></textarea>
+            <button type="submit">Add Timeline Entry</button>
+          </form>
 
-        <div class="admin-actions emergency-actions">
-          <button id="allGreenBtn" type="button">All Green</button>
-          <button id="allYellowBtn" type="button">All Yellow</button>
-          <button id="allRedBtn" class="danger" type="button">Emergency Red</button>
-          <button id="seedBtn" class="secondary" type="button">Reset Defaults</button>
-        </div>
-
-        <form id="globalForm" class="admin-form">
-          <h3>Global Update</h3>
-          <p class="field-help">Overall status updates automatically from venue status. Red overrides Yellow. Yellow overrides Green.</p>
-          <label for="globalTemplateSelect">Status template</label>
-          <select id="globalTemplateSelect">
-            <option value="">Select a template</option>
-            <option value="allClear">All clear</option>
-            <option value="monitoring">Weather monitoring</option>
-            <option value="lightningDelay">Lightning delay</option>
-            <option value="heatAdvisory">Heat advisory</option>
-            <option value="fieldClosure">Field closure</option>
-            <option value="resumePlay">Resume play</option>
-          </select>
-
-          <label for="globalNoteInput">Public note</label>
-          <textarea id="globalNoteInput" rows="4"></textarea>
-          <button type="submit">Save Global Note</button>
-        </form>
-
-        <form id="lightningForm" class="admin-form">
-          <h3>Automated Lightning Alerts</h3>
-          <p class="field-help">Enter the latest strike distance. The system will set the venue to Red at 10 miles or less, Yellow at 15 miles or less, and Green after a 30-minute clear timer.</p>
-          <label for="lightningVenueSelect">Venue</label>
-          <select id="lightningVenueSelect"></select>
-          <label for="lightningDistanceInput">Closest lightning strike distance in miles</label>
-          <input id="lightningDistanceInput" type="number" min="0" step="0.1" placeholder="Example: 8.5" />
-          <label for="lightningMinutesInput">Minutes since last detected strike</label>
-          <input id="lightningMinutesInput" type="number" min="0" step="1" placeholder="Example: 12" />
-          <label for="lightningSourceSelect">Alert source</label>
-          <select id="lightningSourceSelect">
-            <option value="Radar or lightning app">Radar or lightning app</option>
-            <option value="Venue staff report">Venue staff report</option>
-            <option value="Weather service alert">Weather service alert</option>
-            <option value="Tournament director decision">Tournament director decision</option>
-          </select>
-          <label for="lightningNotesInput">Private lightning note</label>
-          <textarea id="lightningNotesInput" rows="3" placeholder="Add source details or staff instructions."></textarea>
-          <button type="submit">Apply Lightning Check</button>
-        </form>
-
-        <section class="admin-form">
-          <div class="panel-header compact-header">
-            <div>
-              <h3>Active Lightning Alerts</h3>
-              <p class="field-help">Countdowns and alert records for staff.</p>
+          <section class="admin-form timeline-panel">
+            <div class="panel-header compact-header">
+              <div>
+                <h3>Operations Timeline</h3>
+                <p class="field-help">Private command center timeline for staff.</p>
+              </div>
+              <button id="clearHistoryBtn" class="secondary small-btn" type="button">Clear Public Status History</button>
             </div>
-          </div>
-          <div id="lightningAlertList" class="incident-list"></div>
-        </section>
+            <div id="timelineList" class="history-list"></div>
+          </section>
 
-        <form id="aiUpdateForm" class="admin-form">
-          <h3>AI-Generated Weather Update</h3>
-          <p class="field-help">Build a polished public update from a weather alert. Review the draft before applying it.</p>
-          <label for="aiVenueSelect">Venue</label>
-          <select id="aiVenueSelect"></select>
-          <label for="aiAlertTypeSelect">Weather alert type</label>
-          <select id="aiAlertTypeSelect">
-            <option value="Lightning">Lightning</option>
-            <option value="Severe Weather">Severe Weather</option>
-            <option value="Heavy Rain">Heavy Rain</option>
-            <option value="Heat Advisory">Heat Advisory</option>
-            <option value="Field Conditions">Field Conditions</option>
-            <option value="Resume Play">Resume Play</option>
-          </select>
-          <label for="aiSeveritySelect">Action level</label>
-          <select id="aiSeveritySelect">
-            <option value="Monitoring">Monitoring</option>
-            <option value="Delay">Delay</option>
-            <option value="Suspended">Suspended</option>
-            <option value="All Clear">All Clear</option>
-          </select>
-          <label for="aiWeatherDetailsInput">Weather alert details</label>
-          <textarea id="aiWeatherDetailsInput" rows="4" placeholder="Example: Lightning detected within 8 miles. Teams should clear fields now."></textarea>
-          <button type="submit">Generate Update Draft</button>
-          <label for="aiGeneratedOutput">Generated public update</label>
-          <textarea id="aiGeneratedOutput" rows="5" placeholder="Generated update will appear here."></textarea>
-          <div class="admin-actions">
-            <button id="aiApplyVenueBtn" type="button">Apply to Venue</button>
-            <button id="aiApplyGlobalBtn" class="secondary" type="button">Apply as Global Note</button>
-          </div>
-        </form>
+          <form id="incidentForm" class="admin-form">
+            <h3>Incident Log</h3>
+            <label for="incidentVenueSelect">Venue</label>
+            <select id="incidentVenueSelect"></select>
+            <label for="incidentTypeSelect">Incident type</label>
+            <select id="incidentTypeSelect">
+              <option value="Weather">Weather</option>
+              <option value="Lightning">Lightning</option>
+              <option value="Field Condition">Field Condition</option>
+              <option value="Medical">Medical</option>
+              <option value="Parking">Parking</option>
+              <option value="Security">Security</option>
+              <option value="Other">Other</option>
+            </select>
+            <label for="incidentNoteInput">Private incident note</label>
+            <textarea id="incidentNoteInput" rows="4" placeholder="Document what happened, who was notified, and next steps."></textarea>
+            <label for="incidentFileInput">Upload file or photo</label>
+            <input id="incidentFileInput" type="file" multiple accept="image/*,.pdf,.txt,.doc,.docx" />
+            <p class="field-help">Files save in this browser only. Use Firebase later for shared cloud storage.</p>
+            <button type="submit">Save Incident</button>
+          </form>
 
-        <form id="fieldStatusForm" class="admin-form">
-          <h3>Dynamic Field Status Board</h3>
-          <label for="fieldVenueSelect">Venue</label>
-          <select id="fieldVenueSelect"></select>
-          <label for="fieldNameInput">Field name or number</label>
-          <input id="fieldNameInput" type="text" placeholder="Example: Field 1" />
-          <label for="fieldStatusSelect">Field status</label>
-          <select id="fieldStatusSelect">
-            <option value="Open">Open</option>
-            <option value="Delayed">Delayed</option>
-            <option value="Closed">Closed</option>
-            <option value="Under Review">Under Review</option>
-            <option value="Maintenance">Maintenance</option>
-          </select>
-          <label for="fieldNoteInput">Public field note</label>
-          <textarea id="fieldNoteInput" rows="3" placeholder="Example: Field 3 is under review due to standing water."></textarea>
-          <button type="submit">Save Field Status</button>
-        </form>
-
-        <section class="admin-form">
-          <div class="panel-header compact-header">
-            <div>
-              <h3>Field Status Records</h3>
-              <p class="field-help">These records show publicly in the Field Status Board.</p>
+          <section class="admin-form">
+            <div class="panel-header compact-header">
+              <div>
+                <h3>Incident Records</h3>
+                <p class="field-help">Private operations log for staff.</p>
+              </div>
+              <button id="clearIncidentsBtn" class="secondary small-btn" type="button">Clear Incidents</button>
             </div>
-            <button id="clearFieldBoardBtn" class="secondary small-btn" type="button">Clear Field Board</button>
-          </div>
-          <div id="fieldBoardAdminList" class="incident-list"></div>
+            <div id="incidentList" class="incident-list"></div>
+          </section>
         </section>
-
-        <form id="timelineForm" class="admin-form">
-          <h3>Add Timeline Update</h3>
-          <label for="timelineTitleInput">Title</label>
-          <input id="timelineTitleInput" type="text" placeholder="Example: Lightning delay issued" />
-          <label for="timelineBodyInput">Private operations timeline note</label>
-          <textarea id="timelineBodyInput" rows="3" placeholder="Enter a short operations update for staff."></textarea>
-          <button type="submit">Add Timeline Entry</button>
-        </form>
-
-        <section class="admin-form timeline-panel">
-          <div class="panel-header compact-header">
-            <div>
-              <h3>Operations Timeline</h3>
-              <p class="field-help">Private command center timeline for staff.</p>
-            </div>
-          </div>
-          <div id="timelineList" class="history-list"></div>
-        </section>
-
-        <form id="incidentForm" class="admin-form">
-          <h3>Incident Log</h3>
-          <label for="incidentVenueSelect">Venue</label>
-          <select id="incidentVenueSelect"></select>
-          <label for="incidentTypeSelect">Incident type</label>
-          <select id="incidentTypeSelect">
-            <option value="Weather">Weather</option>
-            <option value="Lightning">Lightning</option>
-            <option value="Field Condition">Field Condition</option>
-            <option value="Medical">Medical</option>
-            <option value="Parking">Parking</option>
-            <option value="Security">Security</option>
-            <option value="Other">Other</option>
-          </select>
-          <label for="incidentNoteInput">Private incident note</label>
-          <textarea id="incidentNoteInput" rows="4" placeholder="Document what happened, who was notified, and next steps."></textarea>
-          <label for="incidentFileInput">Upload file or photo</label>
-          <input id="incidentFileInput" type="file" multiple accept="image/*,.pdf,.txt,.doc,.docx" />
-          <p class="field-help">Files save in this browser only. Use Firebase later for shared cloud storage.</p>
-          <button type="submit">Save Incident</button>
-        </form>
-
-        <section class="admin-form">
-          <div class="panel-header compact-header">
-            <div>
-              <h3>Incident Records</h3>
-              <p class="field-help">Private operations log for staff.</p>
-            </div>
-            <button id="clearIncidentsBtn" class="secondary small-btn" type="button">Clear Incidents</button>
-          </div>
-          <div id="incidentList" class="incident-list"></div>
-        </section>
-
-        <form id="venueForm" class="admin-form">
-          <h3>Add New Venue</h3>
-          <label for="newVenueName">Venue name</label>
-          <input id="newVenueName" type="text" placeholder="Example: Premier Sports Campus" />
-          <label for="newVenueState">Region</label>
-          <select id="newVenueState">
-            <option value="Florida">Florida</option>
-            <option value="North Carolina">North Carolina</option>
-            <option value="South Carolina">South Carolina</option>
-            <option value="Alabama">Alabama</option>
-            <option value="Georgia">Georgia</option>
-          </select>
-          <label for="newVenueEvents">Tournaments</label>
-          <select id="newVenueEvents" multiple size="8"></select>
-          <label for="newVenueAddress">Venue address or details</label>
-          <input id="newVenueAddress" type="text" placeholder="Street address, city, state" />
-          <label for="newVenueMap">GPS or map link</label>
-          <input id="newVenueMap" type="url" placeholder="https://maps.google.com/..." />
-          <button type="submit">Add Venue</button>
-        </form>
-
-        <div id="adminVenueList" class="admin-venue-list"></div>
       </div>
     </section>
   </aside>

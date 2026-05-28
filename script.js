@@ -3,13 +3,8 @@ const ADMIN_USERS = [
   { name: "Ashley", role: "Tournament Operations", password: "ashley2026$" }
 ];
 
-const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase3";
-const LEGACY_KEYS = [
-  "smcSoutheastWeatherHotlinePhase2Full",
-  "smcSoutheastWeatherHotlinePhase2",
-  "smcSoutheastWeatherHotlinePhase1",
-  "smcSoutheastWeatherHotline"
-];
+const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase3AdminTabs";
+const LEGACY_KEYS = [];
 
 const regions = ["Florida", "North Carolina", "South Carolina", "Alabama", "Georgia"];
 
@@ -50,14 +45,7 @@ const defaultData = {
   lastUpdated: null,
   showCurrentOnly: false,
   currentTournaments: [],
-  venues: [
-    createVenue("Premier Sports Campus", "Florida", ["Florida Extreme Cup (FL)"], "", "5895 Post Blvd, Lakewood Ranch, FL", "Main athletic trainer tent near tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Follow facility parking signs"),
-    createVenue("Wiregrass Ranch Sports Campus", "Florida", ["Gulf Coast Invitational (FL)"], "", "3021 Sports Coast Way, Wesley Chapel, FL", "Athletic trainer station at tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas"),
-    createVenue("Wesley Chapel District Park", "Florida", ["Gulf Coast Invitational (FL)"], "", "7727 Boyette Rd, Wesley Chapel, FL", "Athletic trainer station near field operations", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas"),
-    createVenue("Florence Soccer Complex", "South Carolina", ["Florence Cup (SC)"], "", "3701 W Palmetto St, Florence, SC", "Athletic trainer station near tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas"),
-    createVenue("Jack Allen Recreation Complex", "Alabama", ["Alabama Super Cup (AL)", "Alabama President's Day Invitational (AL)"], "", "2616 Modaus Rd SW, Decatur, AL", "Athletic trainer station near tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas"),
-    createVenue("Carolina Patriots Cup Venue", "North Carolina", ["Carolina Patriots Cup (NC)"], "", "North Carolina", "Athletic trainer station near tournament headquarters", "Designated shelters and vehicles when instructed by staff", "Use posted event parking areas")
-  ],
+  venues: [],
   history: [],
   timeline: [],
   incidents: [],
@@ -87,6 +75,10 @@ const elements = {
   historyList: document.getElementById("historyList"),
   stateFilter: document.getElementById("stateFilter"),
   eventFilter: document.getElementById("eventFilter"),
+  eventFilterToggle: document.getElementById("eventFilterToggle"),
+  eventFilterCheckboxMenu: document.getElementById("eventFilterCheckboxMenu"),
+  currentTournamentToggle: document.getElementById("currentTournamentToggle"),
+  currentTournamentCheckboxMenu: document.getElementById("currentTournamentCheckboxMenu"),
   passwordInput: document.getElementById("passwordInput"),
   verifyBtn: document.getElementById("verifyBtn"),
   loginBox: document.getElementById("loginBox"),
@@ -312,13 +304,81 @@ function updateTournamentSelect(selectElement, includeAll = false, selectedValue
   } else {
     setSelectedValues(selectElement, previous.filter(value => value === "all" || tournamentOptions.includes(value)));
   }
+  renderLinkedCheckboxDropdown(selectElement);
+}
+
+function getCheckboxDropdownParts(selectElement) {
+  if (selectElement === elements.eventFilter) {
+    return {
+      menu: elements.eventFilterCheckboxMenu,
+      toggle: elements.eventFilterToggle,
+      includeAll: true,
+      emptyLabel: "All Tournaments"
+    };
+  }
+  if (selectElement === elements.currentTournamentSelect) {
+    return {
+      menu: elements.currentTournamentCheckboxMenu,
+      toggle: elements.currentTournamentToggle,
+      includeAll: false,
+      emptyLabel: "No current tournaments selected"
+    };
+  }
+  return null;
+}
+
+function getDropdownLabel(selectElement, emptyLabel) {
+  const selected = getSelectedValues(selectElement).filter(value => value !== "all");
+  if (getSelectedValues(selectElement).includes("all")) return "All Tournaments";
+  if (!selected.length) return emptyLabel;
+  if (selected.length === 1) return selected[0];
+  return `${selected.length} tournaments selected`;
+}
+
+function renderLinkedCheckboxDropdown(selectElement) {
+  const parts = getCheckboxDropdownParts(selectElement);
+  if (!parts || !parts.menu || !parts.toggle) return;
+  const selected = new Set(getSelectedValues(selectElement));
+  parts.toggle.textContent = getDropdownLabel(selectElement, parts.emptyLabel);
+  parts.menu.innerHTML = Array.from(selectElement.options).map(option => `
+    <label class="checkbox-option">
+      <input type="checkbox" value="${escapeAttr(option.value)}" ${selected.has(option.value) ? "checked" : ""} />
+      <span>${escapeHtml(option.textContent)}</span>
+    </label>
+  `).join("");
+}
+
+function syncCheckboxDropdown(selectElement, changedValue) {
+  const parts = getCheckboxDropdownParts(selectElement);
+  if (!parts || !parts.menu) return;
+  let values = Array.from(parts.menu.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value);
+  if (parts.includeAll) {
+    if (changedValue === "all") {
+      values = ["all"];
+    } else {
+      values = values.filter(value => value !== "all");
+      if (!values.length) values = ["all"];
+    }
+  }
+  setSelectedValues(selectElement, values);
+  renderLinkedCheckboxDropdown(selectElement);
+  selectElement.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function toggleCheckboxDropdown(menuElement) {
+  if (!menuElement) return;
+  document.querySelectorAll(".checkbox-menu").forEach(menu => {
+    if (menu !== menuElement) menu.classList.add("hidden");
+  });
+  menuElement.classList.toggle("hidden");
 }
 
 function updateVenueSelect(selectElement, includeGlobal = false) {
   if (!selectElement) return;
   const previous = selectElement.value;
   const globalOption = includeGlobal ? '<option value="global">All Public Venues</option>' : '';
-  selectElement.innerHTML = `${globalOption}${data.venues.map(venue => `<option value="${escapeAttr(venue.id)}">${escapeHtml(venue.name)}</option>`).join("")}`;
+  const emptyOption = data.venues.length ? '' : '<option value="">Add a venue first</option>';
+  selectElement.innerHTML = `${globalOption}${emptyOption}${data.venues.map(venue => `<option value="${escapeAttr(venue.id)}">${escapeHtml(venue.name)}</option>`).join("")}`;
   if (previous && Array.from(selectElement.options).some(option => option.value === previous)) {
     selectElement.value = previous;
   }
@@ -496,7 +556,7 @@ function renderPublicVenues() {
       <div class="venue-status-pill ${venue.status}">${venue.status.toUpperCase()}</div>
       <p class="venue-note">${escapeHtml(venue.note || "No current note.")}</p>
     </article>
-  `).join("") : `<article class="venue-card empty-card"><h2>NO CURRENT PUBLIC VENUES</h2><p class="venue-note">The command center is set to show current tournaments only, but no venue matches the selected tournaments.</p></article>`;
+  `).join("") : `<article class="venue-card empty-card"><h2>NO CURRENT PUBLIC VENUES</h2><p class="venue-note">Venue records are managed in Admin Access.</p></article>`;
 }
 
 function fieldStatusClass(status) {
@@ -735,8 +795,11 @@ function unlockAdmin(user) {
   adminUnlocked = true;
   elements.loginBox.classList.add("hidden");
   elements.commandCenter.classList.remove("hidden");
+  elements.adminDrawer.classList.add("admin-fullscreen");
+  document.body.classList.add("command-mode");
+  elements.fullScreenBtn.textContent = "Exit Full Screen";
   document.querySelectorAll(".admin-only").forEach(item => item.classList.remove("hidden"));
-  addHistory("Admin session opened", `${adminLabel()} unlocked the command center.`);
+  addTimeline("Admin session opened", `${adminLabel()} unlocked the command center.`);
   saveData();
   render();
 }
@@ -747,19 +810,28 @@ function lockAdmin() {
   elements.commandCenter.classList.add("hidden");
   elements.loginBox.classList.remove("hidden");
   elements.passwordInput.value = "";
+  elements.adminDrawer.classList.remove("admin-fullscreen");
   document.body.classList.remove("command-mode");
-  elements.fullScreenBtn.textContent = "Full Screen";
+  elements.fullScreenBtn.textContent = "Exit Full Screen";
   document.querySelectorAll(".admin-only").forEach(item => item.classList.add("hidden"));
   render();
 }
 
 function openAdminDrawer() {
   elements.adminDrawer.classList.remove("hidden");
-  setTimeout(() => elements.passwordInput.focus(), 50);
+  if (adminUnlocked) {
+    elements.adminDrawer.classList.add("admin-fullscreen");
+    document.body.classList.add("command-mode");
+    elements.fullScreenBtn.textContent = "Exit Full Screen";
+  }
+  setTimeout(() => {
+    if (!adminUnlocked) elements.passwordInput.focus();
+  }, 50);
 }
 
 function minimizeAdminDrawer() {
   elements.adminDrawer.classList.add("hidden");
+  elements.adminDrawer.classList.remove("admin-fullscreen");
   document.body.classList.remove("command-mode");
   elements.fullScreenBtn.textContent = "Full Screen";
 }
@@ -831,6 +903,22 @@ elements.passwordInput.addEventListener("keydown", event => {
 elements.lockBtn.addEventListener("click", lockAdmin);
 elements.stateFilter.addEventListener("change", render);
 elements.eventFilter.addEventListener("change", render);
+if (elements.eventFilterToggle) {
+  elements.eventFilterToggle.addEventListener("click", () => toggleCheckboxDropdown(elements.eventFilterCheckboxMenu));
+}
+if (elements.eventFilterCheckboxMenu) {
+  elements.eventFilterCheckboxMenu.addEventListener("change", event => syncCheckboxDropdown(elements.eventFilter, event.target.value));
+}
+if (elements.currentTournamentToggle) {
+  elements.currentTournamentToggle.addEventListener("click", () => toggleCheckboxDropdown(elements.currentTournamentCheckboxMenu));
+}
+if (elements.currentTournamentCheckboxMenu) {
+  elements.currentTournamentCheckboxMenu.addEventListener("change", event => syncCheckboxDropdown(elements.currentTournamentSelect, event.target.value));
+}
+document.addEventListener("click", event => {
+  if (event.target.closest(".checkbox-dropdown")) return;
+  document.querySelectorAll(".checkbox-menu").forEach(menu => menu.classList.add("hidden"));
+});
 elements.refreshBtn.addEventListener("click", render);
 if (elements.publicLightningBadge) {
   elements.publicLightningBadge.addEventListener("click", () => {
@@ -839,8 +927,17 @@ if (elements.publicLightningBadge) {
   });
 }
 
+document.querySelectorAll(".tab-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    const tab = button.dataset.tab;
+    document.querySelectorAll(".tab-btn").forEach(item => item.classList.toggle("active", item === button));
+    document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.toggle("active", panel.dataset.tabPanel === tab));
+  });
+});
+
 elements.fullScreenBtn.addEventListener("click", () => {
   document.body.classList.toggle("command-mode");
+  elements.adminDrawer.classList.toggle("admin-fullscreen", document.body.classList.contains("command-mode"));
   elements.fullScreenBtn.textContent = document.body.classList.contains("command-mode") ? "Exit Full Screen" : "Full Screen";
 });
 
@@ -877,7 +974,7 @@ elements.publicViewForm.addEventListener("submit", event => {
   data.currentTournaments = getSelectedValues(elements.currentTournamentSelect).filter(value => tournamentOptions.includes(value));
   data.lastUpdated = nowStamp();
   const note = data.showCurrentOnly ? `Showing current tournaments: ${data.currentTournaments.join(", ") || "None selected"}` : "Showing all venue tournaments.";
-  addHistory("Public tournament view updated", note);
+  addTimeline("Public tournament view updated", note);
   saveData();
   render();
 });
@@ -976,7 +1073,7 @@ elements.clearIncidentsBtn.addEventListener("click", () => {
   if (!adminUnlocked) return;
   if (!confirm("Clear incident records from this browser?")) return;
   data.incidents = [];
-  addHistory("Incident records cleared", `${adminLabel()} cleared incident records.`);
+  addTimeline("Incident records cleared", `${adminLabel()} cleared incident records.`);
   saveData();
   render();
 });
@@ -1139,10 +1236,10 @@ document.getElementById("allGreenBtn").addEventListener("click", () => setAllSta
 document.getElementById("allYellowBtn").addEventListener("click", () => setAllStatuses("yellow"));
 document.getElementById("allRedBtn").addEventListener("click", () => setAllStatuses("red"));
 document.getElementById("seedBtn").addEventListener("click", () => {
-  if (!confirm("Reset all hotline data to defaults?")) return;
+  if (!confirm("Reset all hotline data to blank defaults? This removes venue data saved in this browser.")) return;
   data = clone(defaultData);
   data.lastUpdated = nowStamp();
-  addHistory("Database reset", "Default Southeast venues restored.", "green");
+  addTimeline("Database reset", "Hotline reset to blank defaults. No venue records are included by default.");
   saveData();
   render();
 });

@@ -153,3 +153,17 @@ Venue names display in uppercase. Card content is centered. Card color matches t
 - It updates the public venue note.
 - When no Red or Yellow lightning alert is active, the public lightning panel stays collapsed behind a yellow lightning bolt badge.
 - Visitors may tap the yellow lightning badge to view the current all-clear lightning status.
+
+## Latest Admin Layout Updates
+
+- Admin access opens full screen after a successful login.
+- Command Center is organized into tabs: Overview, Lightning, Fields, Venues, and Logs.
+- Default venue data has been removed. Add venues from the Venues tab.
+- Command Center tournament filter now uses a checkbox dropdown.
+- Current Tournaments now uses a checkbox dropdown.
+- Clear Public Status History moved to the Logs tab under Operations Timeline.
+- Clear Public Status History only removes the public Green, Yellow, and Red status history.
+
+## Blank Default Data
+
+This version uses a new localStorage key so the hotline starts with no venue records by default. Add each venue from the Venues tab.
