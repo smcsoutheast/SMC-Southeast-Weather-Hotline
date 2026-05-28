@@ -172,3 +172,11 @@ This version uses a new localStorage key so the hotline starts with no venue rec
 ## Public page branding updates
 
 The public footer includes the Soccer Management Company logo and the footer text: Soccer Management Company - Southeast Weather Hub. The public page also includes app reference cards for My Lightning Tracker & Alerts and MyRadar with this heading: SMC Southeast uses the following weather apps when monitoring weather conditions in addition to weather alerts from the National Weather Service.
+
+## GitHub Pages Fix
+
+This ZIP is root-ready. Upload the files inside the ZIP directly to the repository root.
+
+Your repository should show `index.html`, `style.css`, `script.js`, `README.md`, `.nojekyll`, and the `assets` folder at the top level.
+
+Do not upload the parent folder into the repository. GitHub Pages will not load the site from the expected root URL if `index.html` is nested inside that folder.
