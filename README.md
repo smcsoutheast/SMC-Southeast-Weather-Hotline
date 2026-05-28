@@ -167,3 +167,8 @@ Venue names display in uppercase. Card content is centered. Card color matches t
 ## Blank Default Data
 
 This version uses a new localStorage key so the hotline starts with no venue records by default. Add each venue from the Venues tab.
+
+
+## Public page branding updates
+
+The public page includes the Soccer Management Company logo, app reference cards for My Lightning Tracker & Alerts and MyRadar, and the footer text: Soccer Management Company - Southeast Weather Hub.

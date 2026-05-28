@@ -546,3 +546,82 @@ body.command-mode .venue-grid {
   .tab-btn { width: 100%; }
   .checkbox-menu { position: static; margin-top: 8px; }
 }
+
+
+.smc-logo {
+  width: min(280px, 72vw);
+  height: auto;
+  display: block;
+  margin: 0 auto 18px;
+  filter: drop-shadow(0 18px 28px rgba(0,0,0,0.18));
+}
+
+.weather-apps-panel {
+  margin-top: 22px;
+}
+.weather-app-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.weather-app-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px;
+  background: #f8fafc;
+}
+.weather-app-card img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.16);
+  flex: 0 0 auto;
+}
+.weather-app-card h3 {
+  margin: 0 0 10px;
+  color: var(--blue);
+}
+.app-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.app-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 9px 13px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: var(--white);
+  text-decoration: none;
+  font-weight: 800;
+}
+.app-links a:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 760px) {
+  .weather-app-grid {
+    grid-template-columns: 1fr;
+  }
+  .weather-app-card {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 420px) {
+  .weather-app-card {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+  .app-links {
+    justify-content: center;
+  }
+}
