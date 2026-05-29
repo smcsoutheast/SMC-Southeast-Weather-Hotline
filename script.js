@@ -4,6 +4,7 @@ const ADMIN_USERS = [
 ];
 
 const STORAGE_KEY = "smcSoutheastWeatherHotlinePhase3AdminTabs";
+const THEME_KEY = "smcSoutheastWeatherTheme";
 const LEGACY_KEYS = [];
 
 const regions = ["Florida", "North Carolina", "South Carolina", "Alabama", "Georgia"];
@@ -57,6 +58,7 @@ let data = loadData();
 let adminUnlocked = false;
 let currentAdmin = null;
 let lightningPanelExpanded = false;
+let currentTheme = loadTheme();
 
 const elements = {
   globalStatus: document.getElementById("globalStatus"),
@@ -86,6 +88,7 @@ const elements = {
   lockBtn: document.getElementById("lockBtn"),
   fullScreenBtn: document.getElementById("fullScreenBtn"),
   refreshBtn: document.getElementById("refreshBtn"),
+  themeSelect: document.getElementById("themeSelect"),
   clearHistoryBtn: document.getElementById("clearHistoryBtn"),
   globalForm: document.getElementById("globalForm"),
   globalTemplateSelect: document.getElementById("globalTemplateSelect"),
@@ -133,6 +136,24 @@ const elements = {
   fieldBoardAdminList: document.getElementById("fieldBoardAdminList"),
   clearFieldBoardBtn: document.getElementById("clearFieldBoardBtn")
 };
+
+
+function loadTheme() {
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  if (["light", "dark"].includes(savedTheme)) return savedTheme;
+  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+  return "light";
+}
+
+function applyTheme(theme) {
+  const nextTheme = theme === "dark" ? "dark" : "light";
+  currentTheme = nextTheme;
+  document.body.dataset.theme = nextTheme;
+  localStorage.setItem(THEME_KEY, nextTheme);
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) themeMeta.setAttribute("content", nextTheme === "dark" ? "#0f172a" : "#071a33");
+  if (elements.themeSelect) elements.themeSelect.value = nextTheme;
+}
 
 function safeUUID() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -920,6 +941,9 @@ document.addEventListener("click", event => {
   document.querySelectorAll(".checkbox-menu").forEach(menu => menu.classList.add("hidden"));
 });
 elements.refreshBtn.addEventListener("click", render);
+if (elements.themeSelect) {
+  elements.themeSelect.addEventListener("change", () => applyTheme(elements.themeSelect.value));
+}
 if (elements.publicLightningBadge) {
   elements.publicLightningBadge.addEventListener("click", () => {
     lightningPanelExpanded = !lightningPanelExpanded;
@@ -1252,6 +1276,7 @@ elements.clearHistoryBtn.addEventListener("click", () => {
   render();
 });
 
+applyTheme(currentTheme);
 if (processLightningTimers()) saveData();
 render();
 setInterval(() => {

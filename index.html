@@ -29,7 +29,14 @@
         <h2>Current Operations Note</h2>
         <p id="globalNote">All clear. Standard operations in effect.</p>
       </div>
-      <button id="refreshBtn" class="secondary small-btn" type="button">Refresh</button>
+      <div class="notice-actions">
+        <label class="theme-select-label" for="themeSelect">Theme</label>
+        <select id="themeSelect" class="theme-select" aria-label="Select page theme">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+        <button id="refreshBtn" class="secondary small-btn" type="button">Refresh</button>
+      </div>
     </section>
 
     <button id="publicLightningBadge" class="lightning-status-badge" type="button" aria-expanded="false" aria-controls="publicLightningPanel">

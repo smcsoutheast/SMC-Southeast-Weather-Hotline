@@ -180,3 +180,14 @@ This ZIP is root-ready. Upload the files inside the ZIP directly to the reposito
 Your repository should show `index.html`, `style.css`, `script.js`, `README.md`, `.nojekyll`, and the `assets` folder at the top level.
 
 Do not upload the parent folder into the repository. GitHub Pages will not load the site from the expected root URL if `index.html` is nested inside that folder.
+
+## Theme selector update
+
+The public page now includes a Theme selector inside the Current Operations Note card.
+
+Options:
+
+- Light
+- Dark
+
+The selected theme is saved in the visitor's browser, so the page keeps the same theme on return visits.
